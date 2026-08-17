@@ -1,0 +1,1961 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#000">
+<title>W-1グランプリ 公式サイト</title>
+<!--
+================================================================
+ 結婚式オープニングムービー用サイト v3「Y-1グランプリ」
+ （大会公式サイト風・黒×赤）
+================================================================
+ URLパラメータ:
+   index.html          → 普通のサイト表示（永久公開用）
+   index.html?intro=1  → 検索画面から始まる（手動）
+   index.html?auto=1   → 収録モード（▶ボタンで偽カーソル自動走行）
+
+ カスタマイズは CONFIG をすべて書き換えるだけ。
+
+ ● タイムカプセル: 挙式1年後まで封印。中身をこのファイルに
+   書くとソースから読めるため、式の時点では b64 を空にして
+   おき、開封日前に管理者が追記する運用を推奨。
+   変換: btoa(unescape(encodeURIComponent("本文")))
+================================================================
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700;900&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#0a0a0a;
+  --panel:#141414;
+  --red:#e50012;
+  --red-dark:#a3000d;
+  --gold:#c9a03f;
+  --gold-bright:#e8c56a;
+  --white:#ffffff;
+  --gray:#9aa0a6;
+  --line:#2a2a2a;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  font-family:'Noto Sans JP',sans-serif;
+  background:var(--black);
+  color:var(--white);
+  line-height:1.85;
+  overflow-x:hidden;
+}
+img{max-width:100%;display:block;}
+a{color:inherit;text-decoration:none;}
+.osw{font-family:'Oswald',sans-serif;}
+
+/* ============ 検索イントロ（現実の検索画面なので白） ============ */
+#search-screen{position:fixed;inset:0;background:#fff;z-index:400;color:#222;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding:20px;}
+#search-screen.hidden{display:none;}
+.se-logo{font-size:56px;font-weight:900;letter-spacing:-2px;user-select:none;font-family:Arial,sans-serif;}
+.se-logo span:nth-child(1){color:#4074e8;}
+.se-logo span:nth-child(2){color:#d93b30;}
+.se-logo span:nth-child(3){color:#efa910;}
+.se-logo span:nth-child(4){color:#4074e8;}
+.se-logo span:nth-child(5){color:#2c9c46;}
+.se-logo span:nth-child(6){color:#d93b30;}
+.se-logo span:nth-child(7){color:#4074e8;}
+.se-box{width:min(560px,90vw);display:flex;align-items:center;gap:12px;
+  border:1px solid #dcdfe4;border-radius:999px;padding:14px 22px;
+  box-shadow:0 2px 8px rgba(20,30,50,.08);background:#fff;}
+.se-box svg{flex:none;opacity:.45;}
+#se-input{border:none;outline:none;font-size:17px;flex:1;font-family:inherit;color:#222;background:transparent;}
+.se-btns{display:flex;gap:14px;}
+.se-btn{background:#f2f4f7;border:1px solid #f2f4f7;border-radius:6px;
+  padding:10px 22px;font-size:14px;color:#3a4450;cursor:pointer;font-family:inherit;}
+.se-btn:hover{border-color:#d6dae0;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+#result-screen{position:fixed;inset:0;background:#fff;color:#222;z-index:390;overflow-y:auto;display:none;}
+#result-screen.show{display:block;}
+.rs-head{display:flex;align-items:center;gap:24px;padding:18px 28px;
+  border-bottom:1px solid #eceef1;position:sticky;top:0;background:#fff;}
+.rs-logo{font-size:24px;font-weight:900;letter-spacing:-1px;font-family:Arial,sans-serif;}
+.rs-box{flex:0 1 520px;display:flex;align-items:center;gap:10px;
+  border:1px solid #dcdfe4;border-radius:999px;padding:9px 18px;
+  font-size:15px;color:#333;box-shadow:0 1px 5px rgba(20,30,50,.07);}
+.rs-body{max-width:660px;padding:22px 28px 80px;}
+.rs-count{font-size:12.5px;color:#8a94a0;margin-bottom:22px;}
+.rs-item{margin-bottom:34px;}
+.rs-url{font-size:12.5px;color:#3d4753;display:flex;align-items:center;gap:8px;}
+.rs-url .fav{width:26px;height:26px;border-radius:50%;background:#eef1f5;flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:13px;}
+.rs-title{font-size:20px;color:#1a0dab;margin:4px 0 3px;cursor:pointer;line-height:1.4;}
+.rs-title:hover{text-decoration:underline;}
+.rs-desc{font-size:14px;color:#474f5a;line-height:1.7;}
+.rs-item.top{border:2px solid var(--red);border-radius:12px;padding:18px 20px;
+  background:linear-gradient(135deg,#fff7f7,#fff);position:relative;}
+.rs-item.top::before{content:"公式";position:absolute;top:-11px;left:16px;
+  background:var(--red);color:#fff;font-size:11px;font-weight:700;
+  padding:2px 12px;border-radius:99px;letter-spacing:2px;}
+
+/* 検索結果からうっかり開く"新郎の変な写真"ページ */
+#photo-screen{position:fixed;inset:0;background:#fff;color:#222;z-index:395;display:none;overflow-y:auto;}
+#photo-screen.show{display:block;}
+.ph-head{display:flex;align-items:center;gap:16px;padding:12px 20px;
+  border-bottom:1px solid #eceef1;position:sticky;top:0;background:#fff;}
+.ph-back{font-family:inherit;font-size:14px;font-weight:700;color:#1a0dab;
+  background:#f2f4f7;border:1px solid #dfe3e8;border-radius:8px;padding:8px 18px;cursor:pointer;white-space:nowrap;}
+.ph-back:hover{background:#e8ebef;}
+.ph-url{font-size:13px;color:#5f6b7a;}
+.ph-body{max-width:640px;margin:0 auto;padding:26px 22px 90px;text-align:center;}
+.ph-warn{display:inline-block;background:var(--red);color:#fff;font-size:12px;font-weight:900;
+  letter-spacing:3px;padding:4px 16px;border-radius:99px;margin-bottom:16px;}
+.ph-title{font-size:20px;font-weight:900;color:#222;margin-bottom:18px;}
+.ph-img{width:100%;max-height:72vh;object-fit:contain;background:#f4f4f4;
+  border-radius:12px;border:1px solid #e2e5ea;}
+.ph-cap{font-size:13.5px;color:#c0392b;font-weight:700;margin-top:16px;line-height:1.9;}
+
+/* ============ Y-1 サイト本体 ============ */
+#site{display:none;}
+#site.show{display:block;}
+
+/* ヘッダー */
+header.gp-header{
+  position:sticky;top:0;z-index:100;background:rgba(5,5,5,.96);
+  border-bottom:2px solid var(--red);backdrop-filter:blur(6px);
+}
+.hd-inner{max-width:1160px;margin:0 auto;padding:0 18px;height:64px;
+  display:flex;align-items:center;justify-content:space-between;gap:14px;}
+.hd-logo{display:flex;align-items:center;gap:10px;flex:none;}
+.hd-mark{
+  width:44px;height:44px;background:var(--red);transform:skewX(-8deg);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Oswald';font-weight:700;font-size:20px;color:#fff;
+  box-shadow:3px 3px 0 rgba(255,255,255,.14);
+}
+.hd-mark span{transform:skewX(8deg);}
+.hd-title{display:flex;flex-direction:column;line-height:1.2;}
+.hd-title .t1{font-size:15px;font-weight:900;letter-spacing:1px;}
+.hd-title .t2{font-size:9px;color:var(--gold);letter-spacing:3px;font-weight:700;}
+nav.gnav{display:flex;gap:0;}
+nav.gnav a{
+  font-size:12.5px;font-weight:700;padding:8px 13px;position:relative;
+  color:#ddd;white-space:nowrap;border-left:1px solid var(--line);
+}
+nav.gnav a:last-child{border-right:1px solid var(--line);}
+nav.gnav a:hover{color:var(--white);background:var(--red);}
+@media(max-width:960px){nav.gnav{display:none;}}
+/* ロゴ画像（logoImage 設定時）＋常時アニメ */
+.hd-logo-media{position:relative;display:inline-flex;overflow:hidden;border-radius:5px;}
+.hd-logo-img{height:46px;width:auto;display:block;animation:logoGlow 2.6s ease-in-out infinite;}
+.hd-logo:hover .hd-logo-img{filter:drop-shadow(0 0 14px rgba(255,215,110,1));}
+.hd-shine{position:absolute;inset:0;pointer-events:none;}
+.hd-shine::before{content:"";position:absolute;top:-25%;left:-60%;width:38%;height:150%;
+  transform:rotate(9deg);background:linear-gradient(105deg,transparent,rgba(255,255,255,.75),transparent);
+  animation:shine 4.5s ease-in-out infinite 1s;}
+@media(max-width:420px){.hd-logo-img{height:38px;}}
+.kv-logo{position:relative;z-index:2;width:min(470px,88%);height:auto;
+  filter:drop-shadow(0 8px 26px rgba(255,180,40,.45));}
+/* ポスター（KV中央メインビジュアル）演出 */
+.kv-poster-wrap{position:relative;z-index:2;width:min(460px,94%);
+  animation:posterFloat 5s ease-in-out infinite;}
+.kv-poster{display:block;width:100%;height:auto;border-radius:8px;
+  border:3px solid rgba(255,220,140,.75);
+  box-shadow:0 0 30px rgba(255,190,60,.4), 0 12px 34px rgba(0,0,0,.6);
+  animation:posterPop 1s cubic-bezier(.2,1.3,.35,1) both, posterGlow 3s ease-in-out infinite 1s;}
+.kv-poster-shine{position:absolute;inset:3px;border-radius:8px;overflow:hidden;pointer-events:none;z-index:3;}
+.kv-poster-shine::before{content:"";position:absolute;top:-40%;left:-60%;width:46%;height:180%;
+  transform:rotate(9deg);background:linear-gradient(105deg,transparent,rgba(255,255,255,.55),transparent);
+  animation:shine 5s ease-in-out infinite;}
+.kv-spark{position:absolute;width:15px;height:15px;pointer-events:none;z-index:4;opacity:0;
+  background:radial-gradient(circle,#fff 0%,#ffe9a8 40%,transparent 70%);
+  animation:sparkle 2.4s ease-in-out infinite;}
+.kv-spark.s1{top:-7px;left:9%;animation-delay:.2s;}
+.kv-spark.s2{top:14%;right:-7px;animation-delay:1s;}
+.kv-spark.s3{bottom:18%;left:-7px;animation-delay:1.7s;}
+.kv-spark.s4{bottom:-7px;right:12%;animation-delay:.7s;}
+
+/* KV（2024アーカイブ型：3カラム・王者発表） */
+.kv{
+  display:grid;grid-template-columns:1fr minmax(320px,600px) 1fr;
+  border-bottom:1px solid var(--line);min-height:640px;
+}
+@media(max-width:820px){
+  .kv{grid-template-columns:1fr;min-height:auto;}
+  .kv-side{min-height:180px;}
+}
+/* 左右：炎の光背景＋王者写真 */
+.kv-side{
+  position:relative;overflow:hidden;
+  background:
+    radial-gradient(circle at 22% 18%, rgba(255,220,80,.65) 0 34px, transparent 70px),
+    radial-gradient(circle at 76% 30%, rgba(255,150,40,.5) 0 26px, transparent 60px),
+    radial-gradient(circle at 30% 66%, rgba(255,240,150,.5) 0 20px, transparent 50px),
+    radial-gradient(circle at 80% 82%, rgba(255,120,30,.55) 0 40px, transparent 84px),
+    radial-gradient(circle at 55% 45%, rgba(255,200,60,.35) 0 60px, transparent 120px),
+    radial-gradient(ellipse at 50% 100%, #ff9a1f 0%, transparent 62%),
+    linear-gradient(180deg,#e00010 0%, #b00010 45%, #7a000c 100%);
+  background-size:cover;
+  display:flex;align-items:center;justify-content:center;padding:24px 14px;
+}
+.kv-side .person{
+  width:90%;max-width:420px;aspect-ratio:3/4;height:auto;
+  background-size:cover;background-position:center 22%;
+  border:2px solid rgba(255,220,140,.55);border-radius:8px;
+  box-shadow:0 0 26px rgba(255,190,60,.3);
+  filter:drop-shadow(0 6px 16px rgba(0,0,0,.45));
+}
+.kv-side .person.placeholder{
+  background:
+    radial-gradient(ellipse at 50% 26%, rgba(0,0,0,.55) 0 17%, transparent 18%),
+    radial-gradient(ellipse at 50% 78%, rgba(0,0,0,.55) 0 34%, transparent 35%);
+  opacity:.55;
+}
+/* 左右の余白に大きめロゴ（上部に配置・ふわっと浮遊） */
+.kv-side-logo{position:absolute;top:4%;left:50%;transform:translateX(-50%);
+  width:88%;max-width:400px;height:auto;z-index:2;pointer-events:none;
+  filter:drop-shadow(0 8px 22px rgba(255,180,40,.55));
+  animation:sideLogoFloat 4.5s ease-in-out infinite;}
+@keyframes sideLogoFloat{
+  0%,100%{transform:translateX(-50%) translateY(0);}
+  50%{transform:translateX(-50%) translateY(-11px);}
+}
+@media(max-width:820px){.kv-side-logo{display:none;}}
+/* 中央：黒＋金の光柱 */
+.kv-center{
+  position:relative;overflow:hidden;background:#000;
+  padding:42px 26px 54px;text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:20px;
+  background:
+    radial-gradient(ellipse 60% 42% at 50% 108%, rgba(255,190,60,.4), transparent 70%),
+    linear-gradient(180deg, rgba(255,190,60,.14), transparent 34%),
+    #000;
+}
+.kv-center::before{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg, transparent 12%, rgba(255,200,80,.1) 50%, transparent 88%);
+  pointer-events:none;
+}
+/* 金の粒子 */
+.kv-particles{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+.kv-particles span{
+  position:absolute;bottom:-12px;border-radius:50%;
+  background:radial-gradient(circle,#ffe9a8 0%,#f4b93c 55%,transparent 75%);
+  animation:riseUp linear infinite;opacity:0;
+}
+@keyframes riseUp{
+  0%{transform:translateY(0) scale(1);opacity:0;}
+  12%{opacity:.95;}
+  100%{transform:translateY(-680px) scale(.35);opacity:0;}
+}
+/* 陽ちゃん切り抜きアニメ（KV左右の余白でトコトコ） */
+.kv-baby{position:absolute;bottom:5%;z-index:3;pointer-events:none;
+  animation:babyWalk 9s ease-in-out infinite;}
+.kv-baby.p1{left:6%;}
+.kv-baby.p2{left:46%;animation-duration:8s;animation-delay:-4.5s;}
+.kv-baby.p3{left:20%;animation-duration:10.5s;animation-delay:-3s;}
+.kv-baby-img{display:block;width:144px;height:auto;transform-origin:50% 92%;
+  filter:drop-shadow(0 8px 12px rgba(0,0,0,.55));
+  animation:babyHop .8s ease-in-out infinite;}
+.kv-baby.p2 .kv-baby-img{width:120px;animation-duration:.7s;}
+.kv-baby.p3 .kv-baby-img{animation-duration:.9s;}
+@media(max-width:820px){.kv-baby-img{width:90px;}.kv-baby{bottom:8px;}.kv-baby.p2{left:52%;}}
+@keyframes babyWalk{
+  0%{transform:translateX(0) scaleX(1);}
+  44%{transform:translateX(115px) scaleX(1);}
+  50%{transform:translateX(115px) scaleX(-1);}
+  94%{transform:translateX(0) scaleX(-1);}
+  100%{transform:translateX(0) scaleX(1);}
+}
+@keyframes babyHop{
+  0%,100%{transform:translateY(0) rotate(-3deg);}
+  25%{transform:translateY(-13px) rotate(2deg);}
+  50%{transform:translateY(0) rotate(3deg);}
+  75%{transform:translateY(-6px) rotate(-2deg);}
+}
+/* ロゴ／ポスター演出のキーフレーム */
+@keyframes posterFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}
+@keyframes posterPop{0%{opacity:0;transform:scale(1.16);}100%{opacity:1;transform:scale(1);}}
+@keyframes posterGlow{
+  0%,100%{box-shadow:0 0 28px rgba(255,190,60,.35),0 12px 34px rgba(0,0,0,.6);}
+  50%{box-shadow:0 0 60px rgba(255,190,60,.75),0 12px 34px rgba(0,0,0,.6);}
+}
+@keyframes logoGlow{
+  0%,100%{filter:drop-shadow(0 0 2px rgba(255,200,80,.4));}
+  50%{filter:drop-shadow(0 0 11px rgba(255,205,90,.95));}
+}
+@keyframes shine{0%,68%{left:-60%;}86%{left:130%;}100%{left:130%;}}
+@keyframes sparkle{0%,100%{opacity:0;transform:scale(.4);}50%{opacity:1;transform:scale(1.1);}}
+/* 金の王冠エンブレム */
+.kv-emblem{position:relative;z-index:2;display:inline-block;
+  filter:drop-shadow(0 6px 18px rgba(255,180,40,.35));}
+.kv-crown{
+  font-size:30px;line-height:1;margin-bottom:-6px;
+  background:linear-gradient(180deg,#fff3c4,#f2c14e 45%,#9a6b12);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.kv-emblem .plate{
+  background:linear-gradient(180deg,#fff3c4 0%,#f2c14e 34%,#c98f1e 62%,#8a5c0e 100%);
+  border:2px solid #6e470a;padding:10px 30px 14px;transform:skewX(-6deg);
+  box-shadow:0 6px 0 #4a2f05, inset 0 2px 0 rgba(255,255,255,.7);
+}
+.kv-emblem .plate .in{transform:skewX(6deg);}
+.kv-emblem .t-main{
+  font-family:'Oswald';font-weight:700;font-size:clamp(38px,5.4vw,58px);
+  line-height:1;color:#3a2404;letter-spacing:2px;
+  text-shadow:0 1px 0 rgba(255,255,255,.55);
+}
+.kv-emblem .t-sub{
+  font-size:clamp(15px,2vw,20px);font-weight:900;color:#3a2404;
+  letter-spacing:6px;margin-top:2px;
+}
+.kv-emblem .t-year{
+  font-family:'Oswald';font-weight:700;font-size:clamp(24px,3.2vw,34px);
+  color:#3a2404;letter-spacing:8px;line-height:1.1;
+}
+/* 放送日時帯 */
+.kv-air{
+  position:relative;z-index:2;background:#fff;color:#111;
+  font-weight:900;font-size:clamp(14px,2vw,19px);letter-spacing:2px;
+  padding:6px 26px;transform:skewX(-6deg);
+}
+.kv-air b{color:var(--red);}
+/* 優勝の瞬間サムネイル */
+.kv-thumb{
+  position:relative;z-index:2;width:min(400px,86%);aspect-ratio:16/9;
+  border:2px solid rgba(255,220,140,.65);background-size:cover;background-position:center;
+  background-color:#160f04;box-shadow:0 0 34px rgba(255,190,60,.28);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Oswald';color:#6d5a30;letter-spacing:4px;font-size:14px;
+}
+.kv-thumb.has-img{color:transparent;}
+/* 王者発表 */
+.kv-champ{position:relative;z-index:2;margin-top:4px;}
+.kv-champ .lbl{
+  font-size:clamp(20px,3vw,30px);font-weight:900;color:#fff;letter-spacing:6px;
+  text-shadow:0 0 22px rgba(255,190,60,.55);
+}
+.kv-champ .name{
+  font-size:clamp(46px,7.4vw,84px);font-weight:900;color:#fff;
+  letter-spacing:6px;line-height:1.25;
+  text-shadow:0 0 34px rgba(255,190,60,.6), 0 4px 10px rgba(0,0,0,.8);
+}
+/* KV直下ストリップ（カウンター＋バナー） */
+.kv-under{
+  background:#050505;border-bottom:1px solid var(--line);
+  padding:40px 20px 44px;text-align:center;
+}
+.counter-wrap{
+  display:inline-block;background:#000;
+  border:1px solid var(--gold);padding:20px 34px;position:relative;
+}
+.counter-wrap::before,.counter-wrap::after{
+  content:"";position:absolute;width:10px;height:10px;border:1px solid var(--gold);
+}
+.counter-wrap::before{top:-4px;left:-4px;border-right:none;border-bottom:none;}
+.counter-wrap::after{bottom:-4px;right:-4px;border-left:none;border-top:none;}
+.counter-label{font-size:11px;letter-spacing:5px;color:var(--gold-bright);
+  font-weight:700;margin-bottom:6px;}
+.counter{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;justify-content:center;}
+.counter b{font-family:'Oswald';font-weight:600;font-size:clamp(30px,4.6vw,50px);
+  color:#fff;font-variant-numeric:tabular-nums;letter-spacing:1px;}
+.counter em{font-style:normal;font-size:12px;color:var(--gray);margin-right:10px;font-weight:700;}
+.counter .sec b{color:var(--red);}
+.kv-banners{
+  max-width:900px;margin:34px auto 0;display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;
+}
+.kv-bn{
+  border:1px solid var(--line);background:var(--panel);padding:13px 16px;
+  font-size:12.5px;font-weight:900;letter-spacing:1px;display:flex;
+  align-items:center;gap:10px;transition:.15s;cursor:pointer;
+}
+.kv-bn:hover{border-color:var(--red);background:#1c0508;}
+.kv-bn .tag{font-family:'Oswald';font-size:10px;background:var(--red);
+  padding:2px 8px;letter-spacing:2px;flex:none;}
+.kv-bn.gold .tag{background:var(--gold);color:#000;}
+
+/* 共通セクション */
+section.block{padding:76px 20px;border-bottom:1px solid var(--line);}
+.block-inner{max-width:1000px;margin:0 auto;}
+.sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:38px;
+  border-left:5px solid var(--red);padding-left:18px;}
+.sec-en{font-family:'Oswald';font-weight:700;font-size:clamp(26px,4vw,40px);
+  letter-spacing:2px;line-height:1;}
+.sec-ja{font-size:13px;font-weight:700;color:var(--gray);letter-spacing:2px;}
+.more{display:inline-block;margin-left:auto;font-size:11.5px;font-weight:700;
+  color:var(--gray);border:1px solid var(--line);padding:4px 16px;}
+
+/* お知らせ */
+.news-list{border-top:1px solid var(--line);}
+.news-item{display:flex;gap:18px;align-items:baseline;flex-wrap:wrap;
+  padding:16px 8px;border-bottom:1px solid var(--line);font-size:14px;font-weight:500;}
+.news-item:hover{background:#111;}
+.news-date{font-family:'Oswald';font-size:12.5px;color:var(--gold-bright);
+  letter-spacing:1px;flex:none;}
+.news-tag{flex:none;font-size:10.5px;font-weight:700;color:var(--red);
+  border:1px solid var(--red);padding:0 10px;letter-spacing:1px;}
+.news-tag.gold{color:var(--gold);border-color:var(--gold);}
+
+/* 日程・結果 */
+.sched{display:grid;gap:0;border-top:1px solid var(--line);}
+.sc-item{
+  display:grid;grid-template-columns:150px 1fr auto;gap:18px;align-items:center;
+  padding:20px 10px;border-bottom:1px solid var(--line);position:relative;
+}
+@media(max-width:640px){.sc-item{grid-template-columns:1fr;gap:6px;}}
+.sc-round{font-family:'Oswald';font-weight:700;font-size:17px;letter-spacing:1px;
+  color:var(--gold-bright);}
+.sc-round small{display:block;font-family:'Noto Sans JP';font-size:10.5px;
+  color:var(--gray);letter-spacing:2px;font-weight:700;}
+.sc-body .t{font-size:15.5px;font-weight:900;}
+.sc-body .d{font-size:12.5px;color:var(--gray);margin-top:2px;}
+.sc-stamp{
+  font-size:13px;font-weight:900;color:var(--red);border:2.5px solid var(--red);
+  padding:4px 16px;transform:rotate(-7deg);letter-spacing:3px;white-space:nowrap;
+  border-radius:4px;
+}
+.sc-stamp.final{color:var(--gold);border-color:var(--gold);animation:blink 1.4s step-end infinite;}
+@keyframes blink{50%{opacity:.35;}}
+
+/* エントリー一覧 */
+.entry-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:20px;}
+.entry-card{border:1px solid var(--line);background:var(--panel);overflow:hidden;position:relative;}
+.entry-card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;z-index:1;
+  background:linear-gradient(90deg,var(--red),var(--gold));}
+.entry-card img{width:100%;display:block;aspect-ratio:1/1;object-fit:cover;background:#0d0d0d;}
+.entry-cap{padding:12px 15px 14px;font-size:14px;font-weight:900;letter-spacing:2px;}
+.entry-cap small{display:block;font-family:'Oswald';font-size:10px;color:var(--red);
+  letter-spacing:3px;margin-bottom:3px;font-weight:700;}
+
+/* コンビ情報（ファイナリスト） */
+.fin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:26px;}
+.fin-card{
+  background:var(--panel);border:1px solid var(--line);position:relative;overflow:hidden;
+}
+.fin-card::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:4px;
+  background:linear-gradient(90deg,var(--red),var(--gold));
+}
+.fin-photo{
+  aspect-ratio:3/4;background:linear-gradient(135deg,#26060a,#0d0d0d);
+  background-size:cover;background-position:center 20%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Oswald';font-size:18px;color:#4a4a4a;letter-spacing:3px;
+  border-bottom:1px solid var(--line);
+}
+.fin-body{padding:24px 24px 26px;}
+.fin-no{font-family:'Oswald';font-size:11px;color:var(--red);letter-spacing:4px;font-weight:700;}
+.fin-intro{font-size:13px;font-weight:700;color:var(--gray);margin-top:8px;}
+.fin-name{font-size:clamp(26px,3.4vw,34px);font-weight:900;letter-spacing:3px;line-height:1.3;}
+.fin-role{display:inline-block;margin:8px 0 14px;font-size:11px;font-weight:700;
+  color:#000;background:var(--gold);padding:2px 14px;letter-spacing:2px;}
+.fin-text{font-size:13.5px;color:#cfcfcf;line-height:2.1;}
+.fin-shout{font-family:'Oswald';font-size:20px;letter-spacing:2px;color:var(--red);
+  margin-top:14px;font-weight:700;}
+.fin-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+.fin-tags span{font-size:11px;font-weight:700;color:var(--gray);
+  border:1px solid var(--line);padding:2px 10px;}
+
+/* 審査員採点 */
+.score-avg{
+  text-align:center;margin-bottom:36px;background:#000;border:1px solid var(--gold);
+  display:inline-block;padding:16px 40px;
+}
+.score-avg-wrap{text-align:center;}
+.score-avg .lbl{font-size:11px;letter-spacing:4px;color:var(--gold-bright);font-weight:700;}
+.score-avg .num{font-family:'Oswald';font-size:clamp(38px,6vw,58px);font-weight:700;
+  color:#fff;line-height:1.1;}
+.score-avg .num small{font-size:.4em;color:var(--gray);}
+.rv-list{display:grid;gap:2px;border-top:1px solid var(--line);}
+.rv-card{background:var(--panel);padding:18px 22px;display:grid;
+  grid-template-columns:96px 1fr;gap:20px;align-items:center;
+  border-bottom:1px solid var(--line);}
+@media(max-width:560px){.rv-card{grid-template-columns:72px 1fr;}}
+.rv-score{
+  font-family:'Oswald';font-weight:700;font-size:clamp(30px,4.4vw,42px);
+  color:var(--red);text-align:center;line-height:1;
+  border-right:1px solid var(--line);padding-right:14px;
+}
+.rv-score small{display:block;font-size:10px;color:var(--gray);
+  font-family:'Noto Sans JP';letter-spacing:2px;font-weight:700;margin-top:4px;}
+.rv-name{font-weight:900;font-size:13.5px;}
+.rv-date{font-family:'Oswald';font-size:10px;color:#666;margin-left:8px;letter-spacing:1px;}
+.rv-text{margin-top:4px;font-size:13.5px;color:#d5d5d5;}
+.rv-form{margin-top:40px;background:var(--panel);border:1px solid var(--line);padding:28px 26px;}
+.rv-form h3{font-size:15px;font-weight:900;letter-spacing:2px;margin-bottom:4px;}
+.rv-form .sub{font-size:12px;color:var(--gray);margin-bottom:18px;}
+.rv-form .row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px;}
+.rv-form input[type=text],.rv-form textarea,.rv-form select{
+  font-family:inherit;font-size:14px;border:1px solid var(--line);
+  background:#000;color:#fff;padding:10px 14px;outline-color:var(--red);}
+.rv-form input[type=text]{flex:1;min-width:180px;}
+.rv-form select{font-family:'Oswald';font-size:16px;letter-spacing:1px;}
+.rv-form textarea{width:100%;min-height:90px;resize:vertical;}
+.rv-form button{font-family:inherit;font-size:14px;font-weight:900;color:#fff;
+  background:var(--red);border:none;padding:13px 40px;cursor:pointer;
+  letter-spacing:3px;transition:.15s;}
+.rv-form button:hover{background:var(--red-dark);}
+.rv-note{font-size:11px;color:#666;margin-top:10px;}
+
+/* タイムカプセル */
+#capsule{background:
+  repeating-linear-gradient(-45deg, rgba(201,160,63,.03) 0 2px, transparent 2px 14px),
+  #050505;}
+.cap-count{text-align:center;margin-bottom:42px;}
+.cap-count .lbl{font-size:11px;letter-spacing:5px;font-weight:700;color:var(--gold-bright);}
+.cap-count .num{font-family:'Oswald';font-weight:700;font-size:clamp(34px,6vw,62px);
+  letter-spacing:2px;font-variant-numeric:tabular-nums;color:#fff;}
+.cap-count .num small{font-family:'Noto Sans JP';font-size:.36em;font-weight:700;color:var(--gray);}
+.cap-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:26px;max-width:860px;margin:0 auto;}
+.cap-card{
+  background:var(--panel);border:1px solid var(--gold);padding:34px 26px;
+  position:relative;text-align:center;min-height:250px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+}
+.cap-seal{position:absolute;top:-13px;left:50%;transform:translateX(-50%);
+  background:var(--gold);color:#000;font-family:'Oswald';font-size:11px;
+  font-weight:700;padding:3px 20px;letter-spacing:4px;}
+.cap-from{font-size:13px;font-weight:700;color:var(--gray);}
+.cap-from b{font-size:16px;color:#fff;}
+.cap-lock{font-size:46px;line-height:1;}
+.cap-status{font-size:12px;font-weight:900;letter-spacing:4px;color:var(--gold-bright);}
+.cap-note{font-size:11px;color:#666;}
+.cap-body{font-size:14.5px;font-weight:500;line-height:2.3;text-align:left;
+  white-space:pre-wrap;display:none;color:#eee;}
+.cap-card.open .cap-lock,.cap-card.open .cap-status,.cap-card.open .cap-note{display:none;}
+.cap-card.open .cap-body{display:block;animation:openUp .9s ease;}
+@keyframes openUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:none;}}
+
+/* 大会の歴史 */
+.hist-list{border-top:1px solid var(--line);}
+.hist-item{display:grid;grid-template-columns:120px 1fr;gap:20px;
+  padding:18px 8px;border-bottom:1px solid var(--line);align-items:baseline;}
+@media(max-width:560px){.hist-item{grid-template-columns:76px 1fr;}}
+.hist-year{font-family:'Oswald';font-weight:700;font-size:22px;color:var(--gold-bright);
+  letter-spacing:1px;}
+.hist-year small{display:block;font-size:9px;color:var(--gray);
+  font-family:'Noto Sans JP';letter-spacing:2px;font-weight:700;}
+.hist-t{font-size:15px;font-weight:900;}
+.hist-d{font-size:12.5px;color:var(--gray);margin-top:2px;}
+
+/* 大会委員長挨拶 */
+.msg-card{background:var(--panel);border:1px solid var(--line);
+  border-top:4px solid var(--red);padding:40px 34px;max-width:760px;margin:0 auto;}
+.msg-card p{font-size:14.5px;line-height:2.4;margin-bottom:1.5em;color:#e5e5e5;}
+.msg-card p:last-child{margin-bottom:0;}
+.msg-sign{margin-top:28px;text-align:right;font-size:17px;font-weight:900;letter-spacing:3px;}
+.msg-sign small{display:block;font-family:'Oswald';font-size:10px;
+  color:var(--gold);letter-spacing:3px;margin-bottom:4px;}
+
+/* フッター */
+footer{background:#000;border-top:2px solid var(--red);padding:42px 20px 56px;
+  text-align:center;}
+.f-archive{max-width:900px;margin:0 auto 30px;display:flex;flex-wrap:wrap;
+  justify-content:center;gap:8px;}
+.f-archive a{font-family:'Oswald';font-size:11px;color:var(--gray);
+  border:1px solid var(--line);padding:3px 12px;letter-spacing:1px;}
+.f-archive a:hover{color:#fff;border-color:var(--red);}
+.f-host{font-size:11.5px;color:var(--gray);line-height:2;}
+.f-copy{font-family:'Oswald';font-size:10px;color:#555;letter-spacing:2px;margin-top:10px;}
+
+/* ============ 偽カーソル・収録 ============ */
+#fake-cursor{position:fixed;z-index:9999;width:26px;height:26px;pointer-events:none;
+  display:none;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6));transform:translate(-4px,-3px);}
+#fake-cursor.show{display:block;}
+.ripple{position:fixed;z-index:9998;width:14px;height:14px;border-radius:50%;
+  border:3px solid var(--red);pointer-events:none;
+  animation:rip .55s ease-out forwards;transform:translate(-50%,-50%);}
+@keyframes rip{from{opacity:.95;scale:.6;}to{opacity:0;scale:3.4;}}
+#rec-panel{position:fixed;bottom:24px;right:24px;z-index:9990;display:none;
+  flex-direction:column;gap:10px;}
+#rec-panel.show{display:flex;}
+#rec-panel button{font-family:inherit;font-size:15px;font-weight:900;color:#fff;
+  background:#c0392b;border:2px solid #7d241a;border-radius:99px;
+  padding:14px 30px;cursor:pointer;box-shadow:0 8px 22px rgba(192,57,43,.5);}
+#rec-panel small{color:#ccc;font-size:11px;text-align:center;background:#222;
+  border-radius:6px;padding:3px 8px;}
+
+/* フィナーレ */
+#finale{position:fixed;inset:0;z-index:9000;
+  background:radial-gradient(ellipse at 50% 30%, #2a0005, #000 70%);
+  display:none;align-items:center;justify-content:center;flex-direction:column;
+  gap:24px;color:#fff;text-align:center;padding:20px;
+  opacity:0;transition:opacity 1.6s;}
+#finale.show{display:flex;}
+#finale.on{opacity:1;}
+#finale .fl-label{font-family:'Oswald';font-size:12px;letter-spacing:6px;color:var(--gold-bright);}
+#finale .counter b{font-size:clamp(44px,8vw,84px);}
+#finale .fl-msg{font-size:clamp(22px,4vw,36px);font-weight:900;letter-spacing:5px;line-height:1.9;}
+#finale .fl-msg em{font-style:normal;color:var(--red);}
+#finale .fl-url{font-size:12px;color:var(--gray);font-weight:700;letter-spacing:1px;}
+
+/* ============ 余興：W-1 敗者復活抽選 ============ */
+#lottery{position:fixed;inset:0;z-index:9500;overflow:hidden;text-align:center;color:#fff;
+  display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:26px 18px;
+  background:radial-gradient(ellipse 72% 46% at 50% 8%, rgba(255,190,60,.16), transparent 62%),
+             radial-gradient(ellipse at 50% 104%, rgba(229,0,18,.28), transparent 60%),#050505;}
+#lottery.show{display:flex;}
+.lt-particles{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1;}
+.lt-particles span{position:absolute;bottom:-12px;border-radius:50%;
+  background:radial-gradient(circle,#ffe9a8 0%,#f4b93c 55%,transparent 75%);
+  animation:riseUp linear infinite;opacity:0;}
+.lt-logo{width:min(280px,58%);height:auto;z-index:2;filter:drop-shadow(0 6px 20px rgba(255,180,40,.4));}
+.lt-head{font-family:'Oswald';font-weight:700;font-size:clamp(19px,4vw,30px);letter-spacing:3px;z-index:2;}
+.lt-sub{font-size:clamp(12px,2.4vw,15px);color:var(--gold-bright);font-weight:700;letter-spacing:2px;z-index:2;}
+.lt-prize{z-index:2;background:#000;border:1px solid var(--gold);padding:8px 22px;
+  font-weight:900;letter-spacing:2px;font-size:clamp(14px,2.6vw,18px);}
+.lt-prize b{color:var(--gold-bright);}
+.lt-prize small{color:var(--gray);font-weight:700;margin-left:10px;}
+.lt-display{z-index:2;display:flex;align-items:center;justify-content:center;gap:4px;}
+.lt-display .pre{font-family:'Oswald';font-weight:700;font-size:clamp(16px,3vw,24px);
+  color:var(--gold-bright);letter-spacing:3px;margin-right:6px;}
+.lt-digits{font-family:'Oswald';font-weight:700;font-variant-numeric:tabular-nums;
+  font-size:clamp(72px,17vw,150px);line-height:1;letter-spacing:5px;
+  background:linear-gradient(180deg,#fff,#ffe9a8 55%,#f2c14e);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 0 30px rgba(255,190,60,.35);}
+.lt-display.win{animation:winPulse .8s ease infinite alternate;}
+@keyframes winPulse{from{filter:drop-shadow(0 0 8px rgba(255,190,60,.35));}
+  to{filter:drop-shadow(0 0 30px rgba(255,190,60,.95));}}
+.lt-card{z-index:2;background:linear-gradient(180deg,#fff3c4,#f2c14e 40%,#c98f1e);
+  border:2px solid #6e470a;padding:20px 40px 24px;transform:skewX(-5deg);box-shadow:0 8px 0 #4a2f05;}
+.lt-card .in{transform:skewX(5deg);color:#3a2404;}
+.lt-card .lbl{font-family:'Oswald';font-weight:700;font-size:12px;letter-spacing:5px;}
+.lt-card .no{font-family:'Oswald';font-weight:700;font-size:clamp(46px,12vw,80px);line-height:1.05;letter-spacing:3px;}
+.lt-msg{z-index:2;min-height:1.4em;font-size:clamp(16px,3.4vw,26px);font-weight:900;letter-spacing:3px;}
+.lt-msg em{font-style:normal;color:var(--red);}
+.lt-note{z-index:2;font-size:12px;color:var(--gray);max-width:540px;line-height:1.9;}
+.lt-btns{z-index:2;display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:2px;}
+.lt-btn{font-family:inherit;font-weight:900;letter-spacing:2px;cursor:pointer;border:none;border-radius:99px;
+  padding:15px 34px;font-size:15px;color:#fff;background:var(--red);
+  box-shadow:0 8px 22px rgba(229,0,18,.45);transition:.15s;}
+.lt-btn:hover{background:var(--red-dark);}
+.lt-btn.gold{background:linear-gradient(180deg,#f2c14e,#c98f1e);color:#3a2404;
+  box-shadow:0 8px 22px rgba(255,180,40,.4);}
+.lt-btn.gold:hover{filter:brightness(1.06);}
+.lt-btn.ghost{background:transparent;border:1px solid var(--line);color:#ddd;box-shadow:none;}
+.lt-btn.ghost:hover{border-color:var(--red);background:#1c0508;}
+.lt-log{z-index:2;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:660px;margin-top:2px;}
+.lt-log span{font-family:'Oswald';font-size:12px;color:var(--gold-bright);
+  border:1px solid var(--line);padding:2px 10px;letter-spacing:1px;}
+
+/* ============ 特報PV（M-1風オープニング） ============ */
+.pv-cta{background:#050505;border-bottom:1px solid var(--line);padding:18px 20px;text-align:center;}
+.pv-cta .lead{font-size:11px;letter-spacing:4px;color:var(--gold-bright);font-weight:700;margin-bottom:10px;}
+.pv-play-btn{font-family:inherit;font-weight:900;letter-spacing:3px;cursor:pointer;color:#fff;
+  background:var(--red);border:2px solid #7d0410;border-radius:99px;padding:14px 40px;font-size:15px;
+  box-shadow:0 8px 22px rgba(229,0,18,.45);transition:.15s;}
+.pv-play-btn:hover{background:var(--red-dark);}
+#pv{position:fixed;inset:0;z-index:9600;background:#000;overflow:hidden;display:none;
+  align-items:center;justify-content:center;text-align:center;color:#fff;}
+#pv.show{display:flex;}
+.pv-vignette{position:absolute;inset:0;pointer-events:none;z-index:5;
+  background:radial-gradient(ellipse 72% 62% at 50% 50%, transparent 42%, rgba(0,0,0,.88) 100%);}
+.pv-spot{position:absolute;top:-25%;width:60%;height:160%;pointer-events:none;opacity:0;z-index:1;
+  background:linear-gradient(180deg, rgba(255,220,120,.18), transparent 70%);filter:blur(8px);}
+.pv-spot-l{left:-12%;transform:rotate(15deg);}
+.pv-spot-r{right:-12%;transform:rotate(-15deg);}
+#pv.lit .pv-spot{opacity:1;transition:opacity 1.3s;}
+.pv-particles{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:2;}
+.pv-particles span{position:absolute;bottom:-12px;border-radius:50%;
+  background:radial-gradient(circle,#ffe9a8 0%,#f4b93c 55%,transparent 75%);
+  animation:riseUp linear infinite;opacity:0;}
+.pv-stage{position:relative;z-index:6;padding:0 22px;max-width:900px;}
+.pv-line{font-size:clamp(24px,5vw,46px);font-weight:900;letter-spacing:3px;line-height:1.7;
+  opacity:0;transform:translateY(18px) scale(.96);transition:opacity .6s ease,transform .6s ease;
+  text-shadow:0 2px 22px rgba(0,0,0,.9);}
+.pv-line.in{opacity:1;transform:none;}
+.pv-line.out{opacity:0;transform:translateY(-14px) scale(1.02);transition:opacity .5s ease,transform .5s ease;}
+.pv-line b{color:var(--gold-bright);}
+.pv-finalists{position:relative;z-index:6;display:none;align-items:center;justify-content:center;
+  gap:clamp(14px,4vw,50px);opacity:1;transition:opacity .5s ease;}
+.pv-finalists.show{display:flex;}
+.pv-finalists.out{opacity:0;}
+.pv-fin{display:flex;flex-direction:column;align-items:center;gap:12px;opacity:0;
+  transition:opacity .6s ease,transform .6s ease;}
+.pv-fin-l{transform:translateX(-40px);}
+.pv-fin-r{transform:translateX(40px);}
+.pv-fin.in{opacity:1;transform:none;}
+.pv-photo{width:clamp(120px,22vw,200px);height:clamp(150px,28vw,258px);
+  background-size:cover;background-position:center top;border:2px solid var(--gold);
+  box-shadow:0 0 30px rgba(255,190,60,.35);background-color:#160f04;}
+.pv-fin-role{font-size:12px;font-weight:900;letter-spacing:4px;color:#000;background:var(--gold);padding:2px 16px;}
+.pv-fin-name{font-size:clamp(20px,3.4vw,30px);font-weight:900;letter-spacing:2px;
+  text-shadow:0 0 18px rgba(255,190,60,.5);}
+.pv-vs{font-family:'Oswald';font-weight:700;font-size:clamp(30px,6vw,64px);color:var(--red);
+  opacity:0;transform:scale(.4);transition:opacity .4s,transform .4s;text-shadow:0 0 24px rgba(229,0,18,.6);}
+.pv-vs.in{opacity:1;transform:none;}
+.pv-logo{position:relative;z-index:7;display:none;flex-direction:column;align-items:center;gap:18px;
+  opacity:1;transition:opacity .5s ease;}
+.pv-logo.show{display:flex;}
+.pv-logo.out{opacity:0;}
+.pv-logo img{width:min(560px,84vw);height:auto;opacity:0;transform:scale(1.6);
+  filter:drop-shadow(0 10px 30px rgba(255,180,40,.5));
+  transition:opacity .5s ease,transform .55s cubic-bezier(.2,1.4,.3,1);}
+.pv-logo.in img{opacity:1;transform:scale(1);}
+.pv-logo .pv-sub{font-size:clamp(14px,2.6vw,20px);font-weight:900;letter-spacing:8px;color:var(--gold-bright);
+  opacity:0;transition:opacity .8s ease .4s;}
+.pv-logo.in .pv-sub{opacity:1;}
+.pv-tagline{position:relative;z-index:7;display:none;font-size:clamp(24px,5vw,46px);font-weight:900;
+  letter-spacing:5px;opacity:0;transform:scale(.9);transition:opacity 1s ease,transform 1s ease;}
+.pv-tagline.show{display:block;}
+.pv-tagline.in{opacity:1;transform:none;}
+.pv-tagline em{font-style:normal;color:var(--red);}
+.pv-skip{position:absolute;bottom:22px;right:22px;z-index:9;font-family:inherit;font-size:12px;
+  color:#bbb;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:99px;
+  padding:8px 18px;cursor:pointer;letter-spacing:1px;}
+.pv-skip:hover{color:#fff;background:rgba(255,255,255,.16);}
+
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
+</style>
+</head>
+<body>
+
+<script>
+/* ================================================================
+   CONFIG — ここだけ書き換えれば完成します
+================================================================ */
+const CONFIG = {
+  groom: "大森 秀紀",
+  bride: "大森 茜",
+  familyName: "大森安藤",
+  weddingDate: "2026-10-11",
+  meetDate: "2024-05-27T20:15:00+09:00",
+  searchQuery: "W-1グランプリ",
+
+  tournamentName: "W-1グランプリ",   // 大会名
+  tournamentYear: "2026",
+  catchTop: "結婚頂上決戦",   // 検索結果の見出しに使用
+
+  // マーク文字（ロゴ画像 logoImage を設定するとヘッダー・KVはそちらを優先表示）
+  markText: "W-1",
+  logoImage: "logo2.png",  // 大会ロゴ画像（背景透過版）
+
+  /* 王者発表KV（2024アーカイブ型） */
+  championLabel: "初代王者",
+  championName: "大森安藤",
+  airDate: '10.11 <b>SUN</b> あさ10時30分 挙式（恵比寿 エレガンテヴィータ）',
+  groomPhoto: "trio2.jpg",    // 左カラム＝新郎（秀紀＋陽）
+  bridePhoto: "trio1.jpg",    // 右カラム＝新婦（茜）
+  winnerPhoto: "",   // 中央「優勝の瞬間」サムネイル（ポスター表示中は非表示）
+  secretPhoto: "trio2.jpg",  // 検索結果から誤って出てくる新郎の"変な写真"
+  posterImage: "top.jpg",           // KV中央にどかんと出すメインビジュアル（ポスター）
+
+  news: [
+    { date:"2026.10.11", tag:"重要", gold:true,  text:"本日、決勝戦（結婚式）を開催。両者そのまま優勝（結婚）となります" },
+    { date:"2026.10.11", tag:"採点", gold:false, text:"審査員採点の受付を開始しました。会場の皆さまもぜひご参加ください" },
+    { date:"2026.10.11", tag:"会場", gold:false, text:"会場は恵比寿エレガンテヴィータ。挙式 10:30／1.5次会 11:30〜13:30" },
+    { date:"2024.12.24", tag:"発表", gold:false, text:"クリスマスイブ、茜邸にてプロポーズが成立。決勝進出（婚約）が決定しました" },
+    { date:"2024.08.08", tag:"速報", gold:false, text:"神田「もつ焼つみき」にて、両者の交際開始を発表しました" },
+  ],
+
+  /* 日程・結果（沿革をトーナメント形式に） */
+  schedule: [
+    { round:"1回戦", sub:"FIRST ROUND", title:"初対面", desc:"2024.05.27 20:15、秋葉原「やきとん元気 清美通り店」。すべては、やきとんの煙の中で始まった。", stamp:"通過" },
+    { round:"2回戦", sub:"SECOND ROUND", title:"交際開始", desc:"2024.08.08 神田「もつ焼つみき」。仕事終わりの一杯から、二人は正式に契約成立。", stamp:"通過" },
+    { round:"準々決勝", sub:"QUARTER FINAL", title:"“お互いの家”期", desc:"どちらからともなく、家を行き来する日々。合鍵という名のフリーパス。", stamp:"通過" },
+    { round:"準決勝", sub:"SEMI FINAL", title:"プロポーズ", desc:"2024.12.24 クリスマスイブ、茜邸にて。飾らず、さらっと。それでも大成功。", stamp:"通過" },
+    { round:"決勝", sub:"FINAL", title:"結婚式", desc:"2026.10.11 恵比寿エレガンテヴィータ。皆さまの前で、優勝（結婚）が決定。", stamp:"優勝", final:true },
+  ],
+
+  /* コンビ情報（ファイナリスト2名） */
+  finalists: [
+    {
+      no:"ENTRY No.1",
+      intro:"我が名は",
+      name:"大森 秀紀",
+      role:"新郎｜結成2024年・所属 大森安藤",
+      photo:"trio2.jpg",
+      text:"ヒッチハイクで各地を渡り歩いてきた生粋の行動派。愛するものは寿司とサッカー、そして茜。秋葉原のやきとん屋で運命を掴んだ、フットワークだけは誰にも負けない男。",
+      shout:"NO FEAR MARRIAGE!",
+      tags:["#ヒッチハイク","#寿司","#サッカー"]
+    },
+    {
+      no:"ENTRY No.2",
+      intro:"私の名は",
+      name:"大森 茜",
+      role:"新婦｜結成2024年・所属 大森安藤",
+      photo:"trio1.jpg",
+      text:"分量をきっちり計る正確派の料理上手。ドジャースと大谷翔平をこよなく愛するが、負けている時はそっとチャンネルを変える名采配。口ぐせは「はにゃ〜」、得意技は睡魔との共存。",
+      shout:"はにゃ〜、しあわせ！",
+      tags:["#ドジャース","#ドジャー・スタジアム","#大谷翔平"]
+    }
+  ],
+
+  /* エントリー一覧（M-1風エントリーカード画像を並べる） */
+  entries: [
+    { img:"entry1.png", name:"ファイブスターズ", no:"ENTRY No.4224" },
+  ],
+
+  /* 審査員採点のサンプル（JSONBin未設定時） */
+  sampleReviews: [
+    { name:"審査員：新郎の友人", score:96, date:"2026.09", text:"ヒッチハイクで日本中を渡り歩いた男が、ついに茜さんの隣に定住。減点なし。" },
+    { name:"審査員：新婦の友人", score:98, date:"2026.09", text:"分量をきっちり計る茜さんの料理は、もはや芸術の域。この二人、隙がない。" },
+    { name:"審査員：職場の同僚", score:90, date:"2026.09", text:"ドジャースが負けるとチャンネルを変える茜さんだけ、あと一歩。それ以外は文句なし。" },
+    { name:"審査員長：ご家族", score:99, date:"2026.10", text:"秀紀くん、茜さん。良いときも悪いときも、二人で笑い合える家庭を。ずっと応援しています。" },
+  ],
+
+  /* タイムカプセル */
+  capsule: {
+    openDate: "",   // 空ならweddingDateの1年後
+    letters: [
+      { from:"秀紀", to:"茜", b64:"" },
+      { from:"茜", to:"秀紀", b64:"" },
+    ]
+  },
+
+  /* 大会の歴史（年表アーカイブ） */
+  historyYears: [
+    { year:"2024", title:"出会い〜交際開始", desc:"5月に秋葉原で出会い、8月には交際スタート。スピード決着。" },
+    { year:"2024", title:"婚約（プロポーズ）", desc:"12月、クリスマスイブに茜邸にて決勝進出が確定。" },
+    { year:"2025", title:"“お互いの家”期", desc:"行き来を重ね、二人の生活が少しずつ一つに。" },
+    { year:"2026", title:"決勝大会（結婚式）", desc:"10月、恵比寿にて本日、両者優勝。" },
+  ],
+
+  /* 大会委員長挨拶（=代表挨拶） */
+  message: [
+    "本日は「W-1グランプリ」決勝の舞台にお集まりいただき、誠にありがとうございます。",
+    "2024年、秋葉原の小さな居酒屋から始まったこの戦いは、たくさんの笑いと、行き来した二つの家に支えられて、本日の決勝を迎えることができました。",
+    "審査の結果——優勝は、二人。これからも良いときも悪いときも（ドジャースが負けている時も）、二人で笑い合いながら戦ってまいります。末永いご声援のほど、よろしくお願い申し上げます。",
+  ],
+
+  /* 余興：W-1 敗者復活抽選（当日用）
+     ゲスト用URL      : ?lottery=1        （スマホで自分の番号を引く）
+     会場スクリーン用 : ?lottery=1&host=1 （司会が抽選を進行） */
+  lottery: {
+    title: "W-1 敗者復活抽選",
+    subtitle: "スマホでエントリー番号を引いて、優勝賞品を狙え！",
+    expectedGuests: 60,   // 採番＆抽選の範囲の目安（1〜この数）。実際の人数に近づけるほど的中しやすい
+    prizes: [             // 上から順に段階抽選（3等→2等→1等）
+      { rank:"3等", label:"プチギフト",             count:3 },
+      { rank:"2等", label:"新郎セレクト・グルメ券",   count:2 },
+      { rank:"1等", label:"優勝賞品（ペアディナー券）", count:1 },
+    ],
+  },
+
+  jsonbin: { binId:"", apiKey:"" },
+  sound: true,
+};
+</script>
+
+<!-- ============ 検索イントロ ============ -->
+<div id="search-screen" class="hidden">
+  <div class="se-logo"><span>G</span><span>o</span><span>o</span><span>l</span><span>o</span><span>v</span><span>e</span></div>
+  <div class="se-box" id="se-box">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <input id="se-input" type="text" autocomplete="off">
+  </div>
+  <div class="se-btns">
+    <button class="se-btn" id="se-search">検索</button>
+    <button class="se-btn">I'm Feeling Lucky</button>
+  </div>
+</div>
+
+<div id="result-screen">
+  <div class="rs-head">
+    <div class="rs-logo"><span style="color:#4074e8">G</span><span style="color:#d93b30">o</span><span style="color:#efa910">o</span><span style="color:#4074e8">l</span><span style="color:#2c9c46">o</span><span style="color:#d93b30">v</span><span style="color:#4074e8">e</span></div>
+    <div class="rs-box" id="rs-query"></div>
+  </div>
+  <div class="rs-body">
+    <div class="rs-count">約 1,000,000 件（0.42 秒）</div>
+    <div class="rs-item top">
+      <div class="rs-url"><span class="fav">🏆</span> https://w-1gp.com</div>
+      <div class="rs-title" id="rs-official"></div>
+      <div class="rs-desc">結婚頂上決戦『W-1グランプリ』公式サイト。エントリーは2名。決勝は2026年10月11日開催。日程・結果、ファイナリスト情報、審査員採点はこちら。</div>
+    </div>
+    <div class="rs-item">
+      <div class="rs-url"><span class="fav">📷</span> https://sns.example.com</div>
+      <div class="rs-title" id="rs-photo">新郎の学生時代の写真フォルダ【閲覧注意】</div>
+      <div class="rs-desc">【閲覧注意】新郎が最も見られたくない一枚。※本人は非公開を希望しています。</div>
+    </div>
+    <div class="rs-item">
+      <div class="rs-url"><span class="fav">🍣</span> https://sushi-log.example.com</div>
+      <div class="rs-title">寿司＆ヒッチハイク - 秀紀の全国食べ歩き記録</div>
+      <div class="rs-desc">更新は茜さんの胃袋事情により不定期です。最終更新：交際開始の前日。</div>
+    </div>
+    <div class="rs-item">
+      <div class="rs-url"><span class="fav">📄</span> https://minutes.example.com</div>
+      <div class="rs-title">ドジャース観戦に関する家庭内協定 議事録（第14条）</div>
+      <div class="rs-desc">議題：負けている時にチャンネルを変える権利について。結論：継続審議。</div>
+    </div>
+  </div>
+</div>
+
+<!-- 検索結果からうっかり開く"新郎の変な写真"ページ -->
+<div id="photo-screen">
+  <div class="ph-head">
+    <button id="ph-back" class="ph-back">← 戻る</button>
+    <div class="ph-url">🔒 https://sns.example.com/shinro-photo</div>
+  </div>
+  <div class="ph-body">
+    <div class="ph-warn">⚠ 閲覧注意</div>
+    <h2 class="ph-title">新郎の学生時代の写真フォルダ</h2>
+    <img class="ph-img" id="ph-img" alt="新郎の一枚">
+    <p class="ph-cap">※この写真は新郎の許可なく掲載されています。至急、戻ってください。</p>
+  </div>
+</div>
+
+<!-- ============ Y-1 サイト本体 ============ -->
+<div id="site">
+  <header class="gp-header">
+    <div class="hd-inner">
+      <a class="hd-logo" href="#top">
+        <span class="hd-logo-media"><img id="hd-logo-img" class="hd-logo-img" alt="" hidden><span class="hd-shine"></span></span>
+        <span class="hd-mark"><span id="hd-mark-text"></span></span>
+        <span class="hd-title">
+          <span class="t1" id="hd-t1"></span>
+          <span class="t2" id="hd-t2"></span>
+        </span>
+      </a>
+      <nav class="gnav">
+        <a href="#news">お知らせ</a>
+        <a href="#schedule">日程・結果</a>
+        <a href="#finalists">コンビ情報</a>
+        <a href="#score">審査員採点</a>
+        <a href="#capsule">タイムカプセル</a>
+        <a href="#history">大会の歴史</a>
+        <a href="#message">決勝</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="pv-cta">
+    <div class="lead">＼ 開演に先立ち ／ 特報PV公開中</div>
+    <button id="pv-play" class="pv-play-btn">▶ 特報PVを再生</button>
+  </div>
+
+  <div class="kv" id="top">
+    <div class="kv-side">
+      <img class="kv-side-logo" src="logo2.png" alt="" aria-hidden="true" onerror="this.style.display='none'">
+      <span class="kv-baby p1"><img class="kv-baby-img" src="baby.png" alt="" aria-hidden="true" onerror="this.closest('.kv-baby').style.display='none'"></span>
+      <span class="kv-baby p2"><img class="kv-baby-img" src="baby3.png" alt="" aria-hidden="true" onerror="this.closest('.kv-baby').style.display='none'"></span>
+      <div class="person placeholder" id="kv-person-l"></div>
+    </div>
+    <div class="kv-center">
+      <div class="kv-particles" id="kv-particles"></div>
+      <div id="kv-poster-wrap" class="kv-poster-wrap" hidden>
+        <img id="kv-poster" class="kv-poster" alt="">
+        <span class="kv-poster-shine"></span>
+        <i class="kv-spark s1"></i><i class="kv-spark s2"></i><i class="kv-spark s3"></i><i class="kv-spark s4"></i>
+      </div>
+      <img id="kv-logo" class="kv-logo" alt="" hidden>
+      <div class="kv-emblem" id="kv-emblem">
+        <div class="kv-crown">&#9819;</div>
+        <div class="plate"><div class="in">
+          <div class="t-main" id="kv-mark-text"></div>
+          <div class="t-sub">グランプリ</div>
+          <div class="t-year" id="kv-year"></div>
+        </div></div>
+      </div>
+      <div class="kv-air" id="kv-air"></div>
+      <div class="kv-thumb" id="kv-thumb">WINNING MOMENT</div>
+      <div class="kv-champ">
+        <div class="lbl" id="champ-label"></div>
+        <div class="name" id="champ-name"></div>
+      </div>
+    </div>
+    <div class="kv-side">
+      <img class="kv-side-logo" src="logo2.png" alt="" aria-hidden="true" onerror="this.style.display='none'">
+      <span class="kv-baby p3"><img class="kv-baby-img" src="baby2.png" alt="" aria-hidden="true" onerror="this.closest('.kv-baby').style.display='none'"></span>
+      <div class="person placeholder" id="kv-person-r"></div>
+    </div>
+  </div>
+  <div class="kv-under">
+    <div class="counter-wrap">
+      <div class="counter-label">両者の因縁（出会いから）</div>
+      <div class="counter" id="counter-main"></div>
+    </div>
+    <div class="kv-banners">
+      <a class="kv-bn" href="#score"><span class="tag">受付中</span>審査員採点はこちら</a>
+      <a class="kv-bn gold" href="#capsule"><span class="tag">封印中</span>タイムカプセル 開封は1年後</a>
+      <a class="kv-bn" href="#finalists"><span class="tag">王者</span>優勝コンビ情報</a>
+    </div>
+  </div>
+
+  <section class="block" id="news">
+    <div class="block-inner">
+      <div class="sec-head">
+        <span class="sec-en osw">INFO</span><span class="sec-ja">お知らせ</span>
+      </div>
+      <div class="news-list" id="news-list"></div>
+    </div>
+  </section>
+
+  <section class="block" id="schedule">
+    <div class="block-inner">
+      <div class="sec-head">
+        <span class="sec-en osw">SCHEDULE</span><span class="sec-ja">日程・結果</span>
+      </div>
+      <div class="sched" id="sched-list"></div>
+    </div>
+  </section>
+
+  <section class="block" id="finalists">
+    <div class="block-inner">
+      <div class="sec-head">
+        <span class="sec-en osw">FINALIST</span><span class="sec-ja">コンビ情報</span>
+      </div>
+      <div class="fin-grid" id="fin-grid"></div>
+    </div>
+  </section>
+
+  <section class="block" id="score">
+    <div class="block-inner">
+      <div class="sec-head">
+        <span class="sec-en osw">JUDGES</span><span class="sec-ja">審査員採点</span>
+      </div>
+      <div class="score-avg-wrap">
+        <div class="score-avg">
+          <div class="lbl">現在の平均スコア</div>
+          <div class="num" id="score-avg-num">--<small> 点</small></div>
+        </div>
+      </div>
+      <div style="height:26px;"></div>
+      <div class="rv-list" id="rv-list"></div>
+      <div class="rv-form">
+        <h3>あなたも審査員に</h3>
+        <p class="sub">お二人に点数とコメントをお願いします（88〜99点）</p>
+        <div class="row">
+          <input type="text" id="rv-name" placeholder="お名前（例：高校の友人 K）" maxlength="30">
+          <select id="rv-score">
+            <option value="99">99</option><option value="98">98</option>
+            <option value="97">97</option><option value="96">96</option>
+            <option value="95" selected>95</option><option value="94">94</option>
+            <option value="93">93</option><option value="92">92</option>
+            <option value="91">91</option><option value="90">90</option>
+            <option value="89">89</option><option value="88">88</option>
+          </select>
+        </div>
+        <textarea id="rv-text" placeholder="審査コメント・お二人へのメッセージ" maxlength="300"></textarea>
+        <div class="row" style="margin-top:12px;"><button id="rv-submit">採点する</button></div>
+        <p class="rv-note">採点は末永くこのサイトに掲載されます。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="capsule">
+    <div class="block-inner">
+      <div class="sec-head">
+        <span class="sec-en osw">TIME CAPSULE</span><span class="sec-ja">1年後のふたりへ</span>
+      </div>
+      <div class="cap-count">
+        <div class="lbl" id="cap-lbl">開封まで</div>
+        <div class="num" id="cap-num"></div>
+      </div>
+      <div class="cap-grid" id="cap-grid"></div>
+    </div>
+  </section>
+
+  <section class="block" id="history">
+    <div class="block-inner">
+      <div class="sec-head">
+        <span class="sec-en osw">HISTORY</span><span class="sec-ja">大会の歴史</span>
+      </div>
+      <div class="hist-list" id="hist-list"></div>
+    </div>
+  </section>
+
+  <section class="block" id="message">
+    <div class="block-inner">
+      <div class="sec-head">
+        <span class="sec-en osw">FINAL</span><span class="sec-ja">大会委員長挨拶</span>
+      </div>
+      <div class="msg-card">
+        <div id="msg-body"></div>
+        <div class="msg-sign">
+          <small class="osw">TOURNAMENT CHAIRPERSONS</small>
+          <span id="msg-sign"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="f-archive" id="f-archive"></div>
+    <div class="f-host" id="f-host"></div>
+    <div class="f-copy" id="f-copy"></div>
+  </footer>
+</div>
+
+<!-- ============ 収録モード ============ -->
+<svg id="fake-cursor" viewBox="0 0 24 24">
+  <path d="M4 2 L4 20 L9 15.5 L12.5 22 L15 20.8 L11.6 14.5 L18 14 Z"
+        fill="#fff" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/>
+</svg>
+<div id="rec-panel">
+  <button id="rec-start">▶ 収録スタート</button>
+  <small>OBSの録画を開始してから押してください</small>
+</div>
+<div id="finale">
+  <div class="fl-label osw">SINCE MAY 27, 2024</div>
+  <div class="counter" id="counter-finale"></div>
+  <div class="fl-msg">優勝は、<em>二人</em>。</div>
+  <div class="fl-url" id="fl-url"></div>
+</div>
+
+<!-- ============ 余興：W-1 敗者復活抽選 ============ -->
+<div id="lottery">
+  <div class="lt-particles" id="lt-particles"></div>
+  <img class="lt-logo" id="lt-logo" alt="" hidden>
+  <div class="lt-head osw" id="lt-head"></div>
+  <div class="lt-sub" id="lt-sub"></div>
+  <div class="lt-prize" id="lt-prize" hidden></div>
+  <div class="lt-display" id="lt-display" hidden><span class="pre">No.</span><span class="lt-digits" id="lt-digits">0000</span></div>
+  <div class="lt-card" id="lt-card" hidden><div class="in"><div class="lbl">YOUR ENTRY</div><div class="no" id="lt-card-no">No.0000</div></div></div>
+  <div class="lt-msg" id="lt-msg"></div>
+  <div class="lt-note" id="lt-note"></div>
+  <div class="lt-btns" id="lt-btns"></div>
+  <div class="lt-log" id="lt-log"></div>
+</div>
+
+<!-- ============ 特報PV（M-1風オープニング） ============ -->
+<div id="pv">
+  <div class="pv-spot pv-spot-l"></div>
+  <div class="pv-spot pv-spot-r"></div>
+  <div class="pv-particles" id="pv-particles"></div>
+  <div class="pv-vignette"></div>
+  <div class="pv-stage" id="pv-stage"></div>
+  <div class="pv-finalists" id="pv-finalists">
+    <div class="pv-fin pv-fin-l">
+      <div class="pv-photo" id="pv-photo-g"></div>
+      <div class="pv-fin-role">新郎</div>
+      <div class="pv-fin-name" id="pv-name-g"></div>
+    </div>
+    <div class="pv-vs">VS</div>
+    <div class="pv-fin pv-fin-r">
+      <div class="pv-photo" id="pv-photo-b"></div>
+      <div class="pv-fin-role">新婦</div>
+      <div class="pv-fin-name" id="pv-name-b"></div>
+    </div>
+  </div>
+  <div class="pv-logo" id="pv-logo">
+    <img id="pv-logo-img" alt="">
+    <div class="pv-sub" id="pv-logo-sub"></div>
+  </div>
+  <div class="pv-tagline" id="pv-tagline"></div>
+  <button class="pv-skip" id="pv-skip">スキップ ▶</button>
+</div>
+
+<script>
+/* ================================================================
+   共通
+================================================================ */
+const $ = s => document.querySelector(s);
+const params = new URLSearchParams(location.search);
+const AUTO = params.get("auto") === "1";
+const INTRO = AUTO || params.get("intro") === "1";
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+/* ================================================================
+   描画
+================================================================ */
+function render(){
+  const gp = `${CONFIG.tournamentName}${CONFIG.tournamentYear}`;
+  document.title = `${CONFIG.tournamentName} 公式サイト`;
+  $("#hd-mark-text").textContent = CONFIG.markText;
+  $("#hd-t1").textContent = gp;
+  $("#hd-t2").textContent = "OFFICIAL SITE";
+  $("#kv-mark-text").textContent = CONFIG.markText;
+  $("#kv-year").textContent = CONFIG.tournamentYear;
+  $("#kv-air").innerHTML = CONFIG.airDate;
+  $("#champ-label").textContent = CONFIG.championLabel;
+  $("#champ-name").textContent = CONFIG.championName;
+  if(CONFIG.groomPhoto){
+    const p = $("#kv-person-l");
+    p.classList.remove("placeholder");
+    p.style.backgroundImage = `url(${CONFIG.groomPhoto})`;
+  }
+  if(CONFIG.bridePhoto){
+    const p = $("#kv-person-r");
+    p.classList.remove("placeholder");
+    p.style.backgroundImage = `url(${CONFIG.bridePhoto})`;
+  }
+  if(CONFIG.winnerPhoto){
+    const t = $("#kv-thumb");
+    t.classList.add("has-img");
+    t.style.backgroundImage = `url(${CONFIG.winnerPhoto})`;
+  }
+  /* 大会ロゴ画像（設定時はヘッダーの文字マーク／KVエンブレムより優先表示） */
+  if(CONFIG.logoImage){
+    const alt = `${CONFIG.tournamentName}`;
+    const hi = $("#hd-logo-img");
+    hi.src = CONFIG.logoImage; hi.alt = alt; hi.hidden = false;
+    $(".hd-mark").style.display = "none";
+    $(".hd-title").style.display = "none";
+    const kl = $("#kv-logo");
+    kl.src = CONFIG.logoImage; kl.alt = alt; kl.hidden = false;
+    $("#kv-emblem").style.display = "none";
+  }
+  /* KV中央のメインビジュアル（ポスター）。読み込めた時だけ中央のロゴ／サムネを隠して主役に */
+  if(CONFIG.posterImage){
+    const p = $("#kv-poster");
+    const wrap = $("#kv-poster-wrap");
+    p.onload = ()=>{
+      if(wrap) wrap.hidden = false;
+      ["#kv-logo","#kv-emblem","#kv-thumb"].forEach(s=>{ const e=$(s); if(e) e.style.display="none"; });
+    };
+    p.onerror = ()=>{ if(wrap) wrap.hidden = true; };
+    p.src = CONFIG.posterImage;
+  }
+  /* 金の粒子を生成 */
+  const pt = $("#kv-particles");
+  let ps = "";
+  for(let i=0;i<26;i++){
+    const size = 3 + Math.random()*7;
+    ps += `<span style="left:${Math.random()*100}%;width:${size}px;height:${size}px;` +
+          `animation-duration:${5+Math.random()*6}s;animation-delay:${Math.random()*8}s;"></span>`;
+  }
+  pt.innerHTML = ps;
+  $("#rs-official").textContent = `${CONFIG.tournamentName} 公式サイト｜${CONFIG.catchTop}`;
+  $("#fl-url").textContent = `このサイトはこれからも、${CONFIG.familyName}とともに更新され続けます`;
+  $("#f-host").innerHTML =
+    `主催：${CONFIG.tournamentName}事務局<br>（${escapeHtml(CONFIG.groom)}・${escapeHtml(CONFIG.bride)} 両家 共同主催）`;
+  $("#f-copy").textContent = `COPYRIGHT © ${CONFIG.tournamentName.toUpperCase()}. ALL RIGHTS RESERVED — たぶん永遠に。`;
+
+  $("#news-list").innerHTML = CONFIG.news.map(n=>`
+    <div class="news-item">
+      <span class="news-date">${n.date}</span>
+      <span class="news-tag${n.gold?" gold":""}">${n.tag}</span>
+      <span>${escapeHtml(n.text)}</span>
+    </div>`).join("");
+
+  $("#sched-list").innerHTML = CONFIG.schedule.map(s=>`
+    <div class="sc-item">
+      <div class="sc-round">${escapeHtml(s.round)}<small>${escapeHtml(s.sub)}</small></div>
+      <div class="sc-body">
+        <div class="t">${escapeHtml(s.title)}</div>
+        <div class="d">${escapeHtml(s.desc)}</div>
+      </div>
+      <div class="sc-stamp${s.final?" final":""}">${escapeHtml(s.stamp)}</div>
+    </div>`).join("");
+
+  $("#fin-grid").innerHTML = CONFIG.finalists.map(f=>`
+    <div class="fin-card">
+      <div class="fin-photo" style="${f.photo?`background-image:url(${f.photo})`:""}">${f.photo?"":"PHOTO"}</div>
+      <div class="fin-body">
+        <div class="fin-no osw">${escapeHtml(f.no)}</div>
+        <div class="fin-intro">${escapeHtml(f.intro)}</div>
+        <div class="fin-name">${escapeHtml(f.name)}</div>
+        <span class="fin-role">${escapeHtml(f.role)}</span>
+        <p class="fin-text">${escapeHtml(f.text)}</p>
+        <div class="fin-shout">${escapeHtml(f.shout)}</div>
+        <div class="fin-tags">${f.tags.map(t=>`<span>${escapeHtml(t)}</span>`).join("")}</div>
+      </div>
+    </div>`).join("");
+
+  $("#hist-list").innerHTML = CONFIG.historyYears.map(h=>`
+    <div class="hist-item">
+      <div class="hist-year">${h.year}<small>大会</small></div>
+      <div>
+        <div class="hist-t">${escapeHtml(h.title)}</div>
+        <div class="hist-d">${escapeHtml(h.desc)}</div>
+      </div>
+    </div>`).join("");
+
+  $("#f-archive").innerHTML = CONFIG.historyYears.map(h=>
+    `<a href="#history">${h.year}年大会</a>`).join("");
+
+  $("#msg-body").innerHTML = CONFIG.message.map(p=>`<p>${escapeHtml(p)}</p>`).join("");
+  $("#msg-sign").textContent = `${CONFIG.groom} ・ ${CONFIG.bride}`;
+}
+
+/* ================================================================
+   カウンター
+================================================================ */
+function pad(n){return String(n).padStart(2,"0");}
+function tickCounter(){
+  const start = new Date(CONFIG.meetDate).getTime();
+  const diff = Math.max(0, Date.now() - start);
+  const d = Math.floor(diff/86400000);
+  const h = Math.floor(diff/3600000)%24;
+  const m = Math.floor(diff/60000)%60;
+  const s = Math.floor(diff/1000)%60;
+  const html = `
+    <span><b>${d.toLocaleString()}</b><em>日</em></span>
+    <span><b>${pad(h)}</b><em>時間</em></span>
+    <span><b>${pad(m)}</b><em>分</em></span>
+    <span class="sec"><b>${pad(s)}</b><em>秒</em></span>`;
+  $("#counter-main").innerHTML = html;
+  $("#counter-finale").innerHTML = html;
+  tickCapsule();
+}
+setInterval(tickCounter, 1000);
+
+/* ================================================================
+   タイムカプセル
+================================================================ */
+function capsuleOpenDate(){
+  if(CONFIG.capsule.openDate) return new Date(CONFIG.capsule.openDate);
+  const d = new Date(CONFIG.weddingDate + "T00:00:00+09:00");
+  d.setFullYear(d.getFullYear()+1);
+  return d;
+}
+function b64decode(b){
+  try{ return decodeURIComponent(escape(atob(b))); }catch(e){ return ""; }
+}
+function renderCapsule(){
+  const open = Date.now() >= capsuleOpenDate().getTime();
+  $("#cap-grid").innerHTML = CONFIG.capsule.letters.map(l=>{
+    const body = l.b64 ? b64decode(l.b64) : "";
+    if(open && body){
+      return `<div class="cap-card open">
+        <span class="cap-seal">OPENED</span>
+        <div class="cap-from">${escapeHtml(l.from)} → <b>${escapeHtml(l.to)}</b> へ</div>
+        <div class="cap-body">${escapeHtml(body)}</div>
+      </div>`;
+    }
+    if(open && !body){
+      return `<div class="cap-card">
+        <span class="cap-seal">OPEN DAY</span>
+        <div class="cap-from">${escapeHtml(l.from)} → <b>${escapeHtml(l.to)}</b> へ</div>
+        <div class="cap-lock">💌</div>
+        <div class="cap-status">開封の準備中</div>
+        <div class="cap-note">まもなく手紙が掲載されます</div>
+      </div>`;
+    }
+    return `<div class="cap-card">
+      <span class="cap-seal">SEALED</span>
+      <div class="cap-from">${escapeHtml(l.from)} → <b>${escapeHtml(l.to)}</b> へ</div>
+      <div class="cap-lock">🔒</div>
+      <div class="cap-status">封印中</div>
+      <div class="cap-note">決勝（結婚式）の1年後に、ここで開封されます</div>
+    </div>`;
+  }).join("");
+}
+function tickCapsule(){
+  const el = $("#cap-num");
+  if(!el) return;
+  const now = Date.now();
+  const target = capsuleOpenDate().getTime();
+  if(now >= target){
+    $("#cap-lbl").textContent = "OPENED!";
+    el.innerHTML = "🏆 開封の日を迎えました";
+    return;
+  }
+  const diff = target - now;
+  const d = Math.floor(diff/86400000);
+  const h = Math.floor(diff/3600000)%24;
+  const m = Math.floor(diff/60000)%60;
+  const s = Math.floor(diff/1000)%60;
+  el.innerHTML = `${d}<small>日</small> ${pad(h)}<small>時間</small> ${pad(m)}<small>分</small> ${pad(s)}<small>秒</small>`;
+}
+
+/* ================================================================
+   審査員採点（レビュー）
+================================================================ */
+const LS_KEY = "y1-scores";
+function renderReviews(list){
+  $("#rv-list").innerHTML = list.map(r=>`
+    <div class="rv-card">
+      <div class="rv-score">${r.score}<small>点</small></div>
+      <div>
+        <span class="rv-name">${escapeHtml(r.name)}</span><span class="rv-date">${r.date||""}</span>
+        <div class="rv-text">${escapeHtml(r.text)}</div>
+      </div>
+    </div>`).join("");
+  if(list.length){
+    const avg = list.reduce((a,r)=>a+Number(r.score||0),0)/list.length;
+    $("#score-avg-num").innerHTML = `${avg.toFixed(1)}<small> 点</small>`;
+  }
+}
+async function loadReviews(){
+  const {binId, apiKey} = CONFIG.jsonbin;
+  if(binId && apiKey){
+    try{
+      const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`,{headers:{"X-Master-Key":apiKey}});
+      const json = await res.json();
+      const list = json.record?.reviews || [];
+      renderReviews(list.length ? list : CONFIG.sampleReviews);
+      return;
+    }catch(e){ console.warn("JSONBin読込失敗:",e); }
+  }
+  const local = JSON.parse(localStorage.getItem(LS_KEY)||"[]");
+  renderReviews([...CONFIG.sampleReviews, ...local]);
+}
+async function submitReview(){
+  const name = $("#rv-name").value.trim();
+  const text = $("#rv-text").value.trim();
+  const score = Number($("#rv-score").value);
+  if(!name || !text){ alert("お名前とコメントを入力してください"); return; }
+  const item = { name: name.startsWith("審査員")?name:`審査員：${name}`, text, score,
+    date: new Date().toLocaleDateString("ja-JP",{year:"numeric",month:"2-digit"}).replace("/",".") };
+  const {binId, apiKey} = CONFIG.jsonbin;
+  if(binId && apiKey){
+    try{
+      const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`,{headers:{"X-Master-Key":apiKey}});
+      const json = await res.json();
+      const rec = json.record || {reviews:[]};
+      rec.reviews = [...(rec.reviews||[]), item];
+      await fetch(`https://api.jsonbin.io/v3/b/${binId}`,{
+        method:"PUT",
+        headers:{"Content-Type":"application/json","X-Master-Key":apiKey},
+        body: JSON.stringify(rec)
+      });
+      renderReviews(rec.reviews);
+    }catch(e){ alert("送信に失敗しました。時間をおいて再度お試しください。"); return; }
+  }else{
+    const local = JSON.parse(localStorage.getItem(LS_KEY)||"[]");
+    local.push(item);
+    localStorage.setItem(LS_KEY, JSON.stringify(local));
+    renderReviews([...CONFIG.sampleReviews, ...local]);
+  }
+  $("#rv-name").value=""; $("#rv-text").value="";
+  alert("採点を掲載しました。ご審査ありがとうございます！");
+}
+
+/* ================================================================
+   検索イントロ
+================================================================ */
+function showSite(){
+  $("#search-screen").classList.add("hidden");
+  $("#result-screen").classList.remove("show");
+  $("#photo-screen").classList.remove("show");
+  $("#site").classList.add("show");
+  window.scrollTo(0,0);
+}
+function showResults(q){
+  $("#rs-query").textContent = q || CONFIG.searchQuery;
+  $("#search-screen").classList.add("hidden");
+  $("#result-screen").classList.add("show");
+}
+function showPhoto(){
+  const img = $("#ph-img");
+  if(CONFIG.secretPhoto && !img.src) img.src = CONFIG.secretPhoto;
+  $("#photo-screen").classList.add("show");
+  $("#photo-screen").scrollTop = 0;
+}
+function hidePhoto(){ $("#photo-screen").classList.remove("show"); }
+
+/* ================================================================
+   サウンド
+================================================================ */
+let audioCtx = null;
+function initAudio(){ if(CONFIG.sound && !audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
+function playClick(){
+  if(!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  o.type="square"; o.frequency.setValueAtTime(2600,t);
+  g.gain.setValueAtTime(.12,t); g.gain.exponentialRampToValueAtTime(.001,t+.06);
+  o.connect(g).connect(audioCtx.destination); o.start(t); o.stop(t+.07);
+}
+function playKey(){
+  if(!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  o.type="triangle"; o.frequency.setValueAtTime(1400+Math.random()*600,t);
+  g.gain.setValueAtTime(.06,t); g.gain.exponentialRampToValueAtTime(.001,t+.04);
+  o.connect(g).connect(audioCtx.destination); o.start(t); o.stop(t+.05);
+}
+
+/* ================================================================
+   偽カーソル・自動収録
+================================================================ */
+const cursor = $("#fake-cursor");
+let cx = innerWidth/2, cy = innerHeight/2;
+function setCursor(x,y){ cx=x; cy=y; cursor.style.left=x+"px"; cursor.style.top=y+"px"; }
+const easeInOut = t => t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+function moveCursorTo(x,y,dur){
+  return new Promise(res=>{
+    const sx=cx, sy=cy, t0=performance.now();
+    function step(now){
+      const p = Math.min(1,(now-t0)/dur);
+      const e = easeInOut(p);
+      setCursor(sx+(x-sx)*e, sy+(y-sy)*e);
+      if(p<1) requestAnimationFrame(step); else res();
+    }
+    requestAnimationFrame(step);
+  });
+}
+function elPoint(sel, ox=0.5, oy=0.5){
+  const r = document.querySelector(sel).getBoundingClientRect();
+  return { x:r.left + r.width*ox, y:r.top + r.height*oy };
+}
+async function moveToEl(sel, dur=900, ox=0.5, oy=0.5){
+  const p = elPoint(sel,ox,oy);
+  await moveCursorTo(p.x,p.y,dur);
+}
+async function clickAt(){
+  playClick();
+  const r = document.createElement("div");
+  r.className="ripple"; r.style.left=cx+"px"; r.style.top=cy+"px";
+  document.body.appendChild(r);
+  setTimeout(()=>r.remove(),600);
+  await sleep(180);
+}
+async function typeInto(sel, text){
+  const el = document.querySelector(sel);
+  el.focus();
+  for(const ch of text){
+    el.value += ch;
+    playKey();
+    await sleep(90 + Math.random()*110);
+  }
+}
+async function backspaceAll(sel){
+  const el = document.querySelector(sel);
+  el.focus();
+  while(el.value.length){
+    el.value = el.value.slice(0,-1);
+    playKey();
+    await sleep(70 + Math.random()*70);
+  }
+}
+function scrollToY(targetY, dur){
+  return new Promise(res=>{
+    const sy = scrollY, t0 = performance.now();
+    function step(now){
+      const p = Math.min(1,(now-t0)/dur);
+      scrollTo(0, sy+(targetY-sy)*easeInOut(p));
+      if(p<1) requestAnimationFrame(step); else res();
+    }
+    requestAnimationFrame(step);
+  });
+}
+function sectionY(sel, offset=-70){
+  const r = document.querySelector(sel).getBoundingClientRect();
+  return scrollY + r.top + offset;
+}
+
+/* ================================================================
+   タイムライン
+   ムービー全体では 0:50〜のY-1映像パート後、2:15頃から
+   このサイト操作パート（約35秒版）を使う想定。
+   フル尺（約2分）も収録できるよう全セクションを走行します。
+   35秒版が欲しい場合は SHORT=true にしてください。
+================================================================ */
+const SHORT = params.get("short") === "1";   // ?auto=1&short=1 で35秒版
+
+async function runTimeline(){
+  cursor.classList.add("show");
+  setCursor(innerWidth/2, innerHeight*0.8);
+
+  if(SHORT){
+    /* ===== 35秒版（ムービー2:15〜2:50用）=====
+       検索イントロは飛ばし、サイトの見どころ3点に絞る */
+    showSite();
+    await sleep(800);
+    await moveCursorTo(innerWidth*0.7, innerHeight*0.55, 700);
+    await sleep(3500);                                   // KV＋因縁カウンター
+    await scrollToY(sectionY("#score"), 1400);
+    await sleep(1200);
+    await scrollToY(sectionY("#score") + 320, 3400);     // 採点を流し見せ
+    await sleep(2200);                                   // 審査員長(父)99点で止める
+    await scrollToY(sectionY("#capsule"), 1500);
+    await sleep(1400);
+    await moveToEl(".cap-card:nth-child(1)", 900);
+    await sleep(3000);                                   // 封印中＋開封カウントダウン
+  }else{
+    /* ===== フル版（約2分10秒）===== */
+    await sleep(1500);
+    await moveToEl("#se-box", 1100);
+    await clickAt();
+    await sleep(400);
+    await typeInto("#se-input", "M-1グラン");        // わざと本家を打ちかけて…
+    await sleep(800);
+    await backspaceAll("#se-input");                 // ハッと気づいて全消し
+    await sleep(350);
+    await typeInto("#se-input", CONFIG.searchQuery);  // 本命「W-1グランプリ」
+    await sleep(700);
+    await moveToEl("#se-search", 800);
+    await sleep(300);
+    await clickAt();
+    showResults(CONFIG.searchQuery);
+
+    await sleep(1200);
+    await moveToEl("#rs-photo", 900);            // 新郎の写真リンクへ
+    await sleep(500);
+    await clickAt();
+    showPhoto();                                 // 変な写真がドーンと出る
+    await sleep(2600);                           // 「うわっ…」の間
+    await moveToEl("#ph-back", 650);             // 慌てて「戻る」へ
+    await sleep(350);
+    await clickAt();
+    hidePhoto();                                 // 検索結果に戻る
+    await sleep(1000);
+    await moveToEl("#rs-official", 900);         // 気を取り直して公式サイトへ
+    await sleep(600);
+    await clickAt();
+    showSite();
+
+    await moveCursorTo(innerWidth*0.72, innerHeight*0.6, 800);
+    await sleep(4000);                                   // KV＋カウンター
+
+    await scrollToY(sectionY("#news"), 1300);
+    await sleep(2200);
+    await scrollToY(sectionY("#schedule"), 1400);
+    await sleep(1600);
+    await scrollToY(sectionY("#schedule") + 300, 3000);  // 通過スタンプを順に
+    await sleep(1600);
+
+    await scrollToY(sectionY("#finalists"), 1400);
+    await sleep(1200);
+    await moveToEl(".fin-card:nth-child(1)", 800);
+    await sleep(2600);
+    await moveToEl(".fin-card:nth-child(2)", 800);
+    await sleep(2600);
+
+    await scrollToY(sectionY("#score"), 1400);
+    await sleep(1600);
+    await scrollToY(sectionY("#score") + 340, 3800);
+    await sleep(2400);
+
+    await scrollToY(sectionY("#capsule"), 1500);
+    await sleep(1400);
+    await moveToEl(".cap-card:nth-child(1)", 900);
+    await sleep(2600);
+
+    await scrollToY(sectionY("#message"), 1600);
+    await sleep(5500);
+  }
+
+  /* フィナーレ */
+  cursor.classList.remove("show");
+  const fin = $("#finale");
+  fin.classList.add("show");
+  requestAnimationFrame(()=>fin.classList.add("on"));
+}
+
+/* ================================================================
+   余興：W-1 敗者復活抽選
+   ?lottery=1        … ゲスト用（各自スマホで番号を引く）
+   ?lottery=1&host=1 … 会場スクリーン用（司会が抽選を進行）
+================================================================ */
+const LOTTERY = params.get("lottery") === "1";
+const LT_HOST = params.get("host") === "1";
+const LT_LS   = "w1-entry-no";
+let ltState = null;
+
+function ltPad(n){ return String(n).padStart(4,"0"); }
+function ltRange(){ return Math.max(2, Number((CONFIG.lottery||{}).expectedGuests || 60)); }
+function ltPrizes(){ return (CONFIG.lottery||{}).prizes || [{rank:"当選",label:"賞品",count:1}]; }
+function ltLogo(){ if(CONFIG.logoImage){ const l=$("#lt-logo"); l.src=CONFIG.logoImage; l.hidden=false; } }
+function ltMakeParticles(){
+  let s="";
+  for(let i=0;i<26;i++){ const sz=3+Math.random()*7;
+    s+=`<span style="left:${Math.random()*100}%;width:${sz}px;height:${sz}px;`+
+       `animation-duration:${5+Math.random()*6}s;animation-delay:${Math.random()*8}s;"></span>`; }
+  $("#lt-particles").innerHTML=s;
+}
+function ltFanfare(){
+  if(!audioCtx) return;
+  const t=audioCtx.currentTime;
+  [523,659,784,1047].forEach((f,i)=>{
+    const d=[0,.12,.24,.42][i];
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type="triangle"; o.frequency.setValueAtTime(f,t+d);
+    g.gain.setValueAtTime(.0001,t+d); g.gain.exponentialRampToValueAtTime(.14,t+d+.02);
+    g.gain.exponentialRampToValueAtTime(.0001,t+d+.3);
+    o.connect(g).connect(audioCtx.destination); o.start(t+d); o.stop(t+d+.32);
+  });
+}
+function spinDigits(el, finalNum, dur){
+  return new Promise(res=>{
+    const t0=performance.now(), max=ltRange();
+    function step(now){
+      const p=Math.min(1,(now-t0)/dur);
+      if(p<1){
+        el.textContent = ltPad(1+Math.floor(Math.random()*max));
+        if(Math.random()<.5) playKey();
+        setTimeout(()=>requestAnimationFrame(step), 40 + easeInOut(p)*170);
+      }else{
+        el.textContent = ltPad(finalNum); res();
+      }
+    }
+    requestAnimationFrame(step);
+  });
+}
+function setBtns(list){
+  const wrap=$("#lt-btns"); wrap.innerHTML="";
+  list.forEach(b=>{
+    const btn=document.createElement("button");
+    btn.className="lt-btn "+(b.cls||""); btn.textContent=b.t;
+    btn.addEventListener("click", b.fn);
+    wrap.appendChild(btn);
+  });
+}
+
+/* ---- ゲスト用 ---- */
+function initLotteryGuest(){
+  const L=CONFIG.lottery||{};
+  $("#lt-head").textContent = L.title || "W-1 敗者復活抽選";
+  $("#lt-sub").textContent  = L.subtitle || "エントリー番号を引いてください";
+  ltLogo(); ltMakeParticles();
+  const saved = localStorage.getItem(LT_LS);
+  if(saved){ showGuestCard(Number(saved)); return; }
+  $("#lt-display").hidden=false; $("#lt-digits").textContent="0000";
+  $("#lt-note").textContent="ボタンを押して、あなたのエントリー番号を決定します（お一人1回）。";
+  setBtns([{t:"エントリー番号を引く", cls:"gold", fn:drawGuest}]);
+}
+async function drawGuest(){
+  initAudio();
+  setBtns([]);
+  const disp=$("#lt-display"); disp.hidden=false; disp.classList.remove("win");
+  $("#lt-note").textContent="抽選中…";
+  const n = 1 + Math.floor(Math.random()*ltRange());
+  await spinDigits($("#lt-digits"), n, 2200);
+  localStorage.setItem(LT_LS, String(n));
+  disp.classList.add("win"); ltFanfare();
+  showGuestCard(n);
+}
+function showGuestCard(n){
+  $("#lt-display").hidden=true;
+  $("#lt-card").hidden=false;
+  $("#lt-card-no").textContent = "No."+ltPad(n);
+  $("#lt-msg").innerHTML = `あなたは <em>ENTRY No.${ltPad(n)}</em>`;
+  $("#lt-note").textContent="この番号を持って、会場スクリーンの発表をお待ちください。（番号はこの端末に保存されます）";
+  setBtns([]);
+}
+
+/* ---- 会場スクリーン用（司会進行） ---- */
+function initLotteryHost(){
+  const L=CONFIG.lottery||{};
+  $("#lt-head").textContent = (L.title || "W-1 敗者復活抽選") + " 〈司会用〉";
+  $("#lt-sub").textContent  = "ボタンで抽選スタート";
+  ltLogo(); ltMakeParticles();
+  $("#lt-prize").hidden=false; $("#lt-display").hidden=false; $("#lt-card").hidden=true;
+  $("#lt-log").innerHTML="";
+  ltState={ prizeIdx:0, drawnInPrize:0, used:new Set(), pending:null };
+  $("#lt-digits").textContent="0000";
+  $("#lt-msg").textContent="";
+  $("#lt-note").textContent="※ 当選番号を持つ方が会場にいない場合は「引き直し」を押してください（＝敗者復活）。";
+  updatePrize(); renderHostBtns(false);
+}
+function updatePrize(){
+  const p=ltPrizes()[ltState.prizeIdx];
+  if(!p){ $("#lt-prize").innerHTML="全ての抽選が終了しました 🏆"; return; }
+  const remain=p.count - ltState.drawnInPrize;
+  $("#lt-prize").innerHTML=`<b>${escapeHtml(p.rank)}</b>：${escapeHtml(p.label)}<small>残り ${remain} 本</small>`;
+}
+function renderHostBtns(spun){
+  const p=ltPrizes()[ltState.prizeIdx];
+  if(!p){ setBtns([{t:"最初に戻る", cls:"ghost", fn:initLotteryHost}]); return; }
+  if(!spun){ setBtns([{t:"抽選スタート", cls:"gold", fn:drawHost}]); }
+  else{ setBtns([
+    {t:"この番号で確定", cls:"", fn:confirmWinner},
+    {t:"引き直し", cls:"ghost", fn:drawHost},
+  ]); }
+}
+async function drawHost(){
+  initAudio();
+  setBtns([]);
+  $("#lt-display").classList.remove("win"); $("#lt-msg").textContent="";
+  const max=ltRange(); let n, guard=0;
+  do{ n=1+Math.floor(Math.random()*max); guard++; }while(ltState.used.has(n) && guard<max*4);
+  await spinDigits($("#lt-digits"), n, 2600);
+  ltState.pending=n;
+  $("#lt-display").classList.add("win"); ltFanfare();
+  $("#lt-msg").innerHTML=`<em>敗者復活！</em> ENTRY No.${ltPad(n)} 当選！`;
+  renderHostBtns(true);
+}
+function confirmWinner(){
+  const n=ltState.pending; if(n==null) return;
+  const p=ltPrizes()[ltState.prizeIdx]; if(!p){ ltState.pending=null; return; }
+  ltState.used.add(n);
+  $("#lt-log").insertAdjacentHTML("beforeend", `<span>No.${ltPad(n)}</span>`);
+  ltState.drawnInPrize++;
+  if(ltState.drawnInPrize>=p.count){ ltState.prizeIdx++; ltState.drawnInPrize=0; }
+  ltState.pending=null;
+  $("#lt-display").classList.remove("win");
+  updatePrize();
+  if(!ltPrizes()[ltState.prizeIdx]){ $("#lt-msg").innerHTML="🏆 全当選、発表完了！おめでとうございます！"; }
+  else{ $("#lt-msg").textContent=""; $("#lt-digits").textContent="0000"; }
+  renderHostBtns(false);
+}
+function startLottery(){
+  $("#lottery").classList.add("show");
+  if(LT_HOST) initLotteryHost(); else initLotteryGuest();
+}
+
+/* ================================================================
+   特報PV（M-1風オープニング・自作アニメ＋Web Audio劇伴）
+================================================================ */
+let pvNodes=[], pvMaster=null, pvToken=0;
+const pvAlive=()=>$("#pv").classList.contains("show");
+function pvAudioInit(){
+  if(!audioCtx) return;
+  if(!pvMaster){ pvMaster=audioCtx.createGain(); pvMaster.gain.value=.9; pvMaster.connect(audioCtx.destination); }
+}
+function pvNoise(dur){
+  const sr=audioCtx.sampleRate, buf=audioCtx.createBuffer(1,Math.max(1,Math.floor(sr*dur)),sr), d=buf.getChannelData(0);
+  for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+  const s=audioCtx.createBufferSource(); s.buffer=buf; return s;
+}
+function pvHit(){
+  if(!audioCtx) return; const t=audioCtx.currentTime;
+  const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.type="sine"; o.frequency.setValueAtTime(150,t); o.frequency.exponentialRampToValueAtTime(52,t+.2);
+  g.gain.setValueAtTime(.55,t); g.gain.exponentialRampToValueAtTime(.001,t+.55);
+  o.connect(g).connect(pvMaster); o.start(t); o.stop(t+.6);
+}
+function pvBrass(freqs,dur=0.8,vol=.16){
+  if(!audioCtx) return; const t=audioCtx.currentTime;
+  freqs.forEach(f=>{
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain(), lp=audioCtx.createBiquadFilter();
+    lp.type="lowpass"; lp.frequency.value=2400;
+    o.type="sawtooth"; o.frequency.value=f;
+    g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+.05);
+    g.gain.exponentialRampToValueAtTime(.001,t+dur);
+    o.connect(lp).connect(g).connect(pvMaster); o.start(t); o.stop(t+dur+.05);
+  });
+}
+function pvCrash(vol=.28){
+  if(!audioCtx) return; const t=audioCtx.currentTime;
+  const s=pvNoise(1.3), g=audioCtx.createGain(), hp=audioCtx.createBiquadFilter();
+  hp.type="highpass"; hp.frequency.value=5200;
+  g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.001,t+1.2);
+  s.connect(hp).connect(g).connect(pvMaster); s.start(t); s.stop(t+1.3);
+}
+function pvRiser(dur=1.8){
+  if(!audioCtx) return; const t=audioCtx.currentTime;
+  const s=pvNoise(dur+.1), g=audioCtx.createGain(), bp=audioCtx.createBiquadFilter();
+  bp.type="bandpass"; bp.frequency.setValueAtTime(300,t); bp.frequency.exponentialRampToValueAtTime(6500,t+dur); bp.Q.value=1.1;
+  g.gain.setValueAtTime(.001,t); g.gain.exponentialRampToValueAtTime(.22,t+dur*.92); g.gain.exponentialRampToValueAtTime(.001,t+dur);
+  s.connect(bp).connect(g).connect(pvMaster); s.start(t); s.stop(t+dur);
+  const o=audioCtx.createOscillator(), og=audioCtx.createGain();
+  o.type="sawtooth"; o.frequency.setValueAtTime(110,t); o.frequency.exponentialRampToValueAtTime(880,t+dur);
+  og.gain.setValueAtTime(.0001,t); og.gain.exponentialRampToValueAtTime(.1,t+dur*.9); og.gain.exponentialRampToValueAtTime(.001,t+dur);
+  o.connect(og).connect(pvMaster); o.start(t); o.stop(t+dur);
+}
+function pvDrone(){
+  if(!audioCtx) return; const t=audioCtx.currentTime;
+  [55,82.4].forEach(f=>{
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain(), lp=audioCtx.createBiquadFilter();
+    lp.type="lowpass"; lp.frequency.value=420;
+    o.type="sawtooth"; o.frequency.value=f;
+    g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.05,t+2.5);
+    o.connect(lp).connect(g).connect(pvMaster); o.start(t);
+    pvNodes.push({o,g});
+  });
+}
+function pvChord(){
+  if(!audioCtx) return; const t=audioCtx.currentTime;
+  [220,277.2,329.6,440].forEach(f=>{
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain(), lp=audioCtx.createBiquadFilter();
+    lp.type="lowpass"; lp.frequency.value=3200;
+    o.type="sawtooth"; o.frequency.value=f;
+    g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.08,t+.3);
+    o.connect(lp).connect(g).connect(pvMaster); o.start(t);
+    pvNodes.push({o,g});
+  });
+}
+function pvStopAll(){
+  if(!audioCtx){ pvNodes=[]; return; }
+  const t=audioCtx.currentTime;
+  pvNodes.forEach(({o,g})=>{ try{
+    g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(g.gain.value,t);
+    g.gain.exponentialRampToValueAtTime(.0001,t+.5); o.stop(t+.55);
+  }catch(e){} });
+  pvNodes=[];
+}
+function pvParticles(){
+  let s="";
+  for(let i=0;i<30;i++){ const sz=3+Math.random()*7;
+    s+=`<span style="left:${Math.random()*100}%;width:${sz}px;height:${sz}px;`+
+       `animation-duration:${5+Math.random()*6}s;animation-delay:${Math.random()*8}s;"></span>`; }
+  $("#pv-particles").innerHTML=s;
+}
+function pvReset(){
+  ["pv-finalists","pv-logo","pv-tagline"].forEach(id=>$("#"+id).classList.remove("show","in","out"));
+  $(".pv-fin-l").classList.remove("in"); $(".pv-fin-r").classList.remove("in"); $(".pv-vs").classList.remove("in");
+  $("#pv").classList.remove("lit");
+  $("#pv-stage").innerHTML="";
+}
+async function pvTitle(html, hold, opt={}){
+  if(!pvAlive()) return;
+  const st=$("#pv-stage");
+  st.innerHTML=`<div class="pv-line">${html}</div>`;
+  const line=st.firstChild;
+  if(opt.hit) pvHit();
+  if(opt.riser) pvRiser(hold/1000);
+  setTimeout(()=>{ if(line) line.classList.add("in"); }, 40);
+  await sleep(hold);
+  if(line) line.classList.add("out");
+  await sleep(500);
+}
+async function playPV(){
+  const my=++pvToken;
+  initAudio(); pvAudioInit();
+  pvStopAll(); pvReset();
+  const pv=$("#pv"); pv.classList.add("show");
+  if(CONFIG.logoImage) $("#pv-logo-img").src=CONFIG.logoImage;
+  $("#pv-logo-sub").textContent=CONFIG.catchTop||"結婚頂上決戦";
+  if(CONFIG.groomPhoto) $("#pv-photo-g").style.backgroundImage=`url(${CONFIG.groomPhoto})`;
+  if(CONFIG.bridePhoto) $("#pv-photo-b").style.backgroundImage=`url(${CONFIG.bridePhoto})`;
+  $("#pv-name-g").textContent=CONFIG.groom;
+  $("#pv-name-b").textContent=CONFIG.bride;
+  pvParticles(); pvDrone();
+  setTimeout(()=>pv.classList.add("lit"),400);
+  await sleep(700); if(pvToken!==my) return;
+
+  await pvTitle("年に一度――<br><b>愛を懸けた戦い</b>がある。", 3000, {hit:true}); if(pvToken!==my) return;
+  await pvTitle("2024年、秋葉原。<br>出会いは一杯の<b>やきとん</b>。", 3000, {hit:true}); if(pvToken!==my) return;
+  await pvTitle("その全ては、<br><b>この一日</b>のために。", 2800, {hit:true}); if(pvToken!==my) return;
+
+  const F=$("#pv-finalists"); F.classList.add("show");
+  setTimeout(()=>$(".pv-fin-l").classList.add("in"),40); pvBrass([233,349,466]);
+  await sleep(1500); if(pvToken!==my) return;
+  $(".pv-fin-r").classList.add("in"); pvBrass([261,392,523]);
+  await sleep(1500); if(pvToken!==my) return;
+  $(".pv-vs").classList.add("in"); pvHit();
+  await sleep(1700); if(pvToken!==my) return;
+  F.classList.add("out"); await sleep(500);
+  F.classList.remove("show","out");
+  $(".pv-fin-l").classList.remove("in"); $(".pv-fin-r").classList.remove("in"); $(".pv-vs").classList.remove("in");
+  if(pvToken!==my) return;
+
+  await pvTitle("いざ、<b>頂上決戦</b>。", 1900, {riser:true}); if(pvToken!==my) return;
+
+  const L=$("#pv-logo"); L.classList.add("show");
+  setTimeout(()=>L.classList.add("in"),30);
+  pvCrash(); pvBrass([220,277,330,440],1.5,.2);
+  await sleep(3200); if(pvToken!==my) return;
+  L.classList.add("out"); await sleep(500); L.classList.remove("show","in","out");
+  if(pvToken!==my) return;
+
+  const T=$("#pv-tagline"); T.innerHTML=`優勝は、<em>二人</em>。`;
+  T.classList.add("show"); setTimeout(()=>T.classList.add("in"),30); pvChord();
+  await sleep(3200); if(pvToken!==my) return;
+
+  pvEndPV();
+}
+function pvEndPV(){ pvStopAll(); $("#pv").classList.remove("show"); pvReset(); }
+function pvSkip(){ pvToken++; pvStopAll(); $("#pv").classList.remove("show"); pvReset(); }
+
+/* ================================================================
+   起動
+================================================================ */
+render();
+renderCapsule();
+tickCounter();
+loadReviews();
+$("#rv-submit").addEventListener("click", submitReview);
+$("#se-search").addEventListener("click",()=>showResults($("#se-input").value));
+$("#se-input").addEventListener("keydown",e=>{ if(e.key==="Enter") showResults(e.target.value); });
+$("#rs-official").addEventListener("click", showSite);
+$("#rs-photo").addEventListener("click", showPhoto);
+$("#ph-back").addEventListener("click", hidePhoto);
+$("#pv-play").addEventListener("click", playPV);
+$("#pv-skip").addEventListener("click", pvSkip);
+
+if(LOTTERY){
+  startLottery();
+}else if(INTRO){
+  $("#search-screen").classList.remove("hidden");
+  $("#site").classList.remove("show");
+  if(AUTO){
+    $("#se-input").readOnly = true;
+    $("#rec-panel").classList.add("show");
+    $("#rec-start").addEventListener("click", ()=>{
+      initAudio();
+      $("#rec-panel").classList.remove("show");
+      runTimeline();
+    });
+  }
+}else{
+  $("#site").classList.add("show");
+}
+setInterval(renderCapsule, 60000);
+</script>
+</body>
+</html>
