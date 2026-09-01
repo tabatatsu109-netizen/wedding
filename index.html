@@ -702,6 +702,15 @@ footer{background:#000;border-top:2px solid var(--red);padding:42px 20px 56px;
   color:#bbb;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:99px;
   padding:8px 18px;cursor:pointer;letter-spacing:1px;}
 .pv-skip:hover{color:#fff;background:rgba(255,255,255,.16);}
+/* オープニングムービー（実映像）プレーヤー */
+#omv{position:fixed;inset:0;z-index:9700;background:#000;display:none;
+  align-items:center;justify-content:center;}
+#omv.show{display:flex;}
+#omv video{width:100%;height:100%;object-fit:contain;background:#000;}
+.omv-close{position:absolute;top:18px;right:18px;z-index:2;font-family:inherit;font-size:14px;font-weight:900;
+  color:#fff;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.4);border-radius:99px;
+  padding:10px 20px;cursor:pointer;letter-spacing:1px;}
+.omv-close:hover{background:rgba(0,0,0,.85);}
 
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
 </style>
@@ -917,8 +926,8 @@ const CONFIG = {
   </header>
 
   <div class="pv-cta">
-    <div class="lead">＼ 開演に先立ち ／ 特報PV公開中</div>
-    <button id="pv-play" class="pv-play-btn">▶ 特報PVを再生</button>
+    <div class="lead">＼ 開演に先立ち ／ 本編ムービー公開中</div>
+    <button id="pv-play" class="pv-play-btn">▶ オープニングムービーを再生</button>
   </div>
 
   <div class="kv" id="top">
@@ -1131,6 +1140,14 @@ const CONFIG = {
   </div>
   <div class="pv-tagline" id="pv-tagline"></div>
   <button class="pv-skip" id="pv-skip">スキップ ▶</button>
+</div>
+
+<!-- ============ オープニングムービー（実映像） ============ -->
+<div id="omv">
+  <video id="omv-video" playsinline controls preload="none">
+    <source src="omv.mp4" type="video/mp4">
+  </video>
+  <button id="omv-close" class="omv-close">✕ 閉じる</button>
 </div>
 
 <script>
@@ -1935,7 +1952,18 @@ $("#se-input").addEventListener("keydown",e=>{ if(e.key==="Enter") showResults(e
 $("#rs-official").addEventListener("click", showSite);
 $("#rs-photo").addEventListener("click", showPhoto);
 $("#ph-back").addEventListener("click", hidePhoto);
-$("#pv-play").addEventListener("click", playPV);
+/* 「▶ オープニングムービー」ボタン → 実映像を再生（読めない環境ではCSS版PVにフォールバック） */
+const omvEl = $("#omv"), omvVid = $("#omv-video");
+function openOMV(){
+  omvEl.classList.add("show");
+  try{ omvVid.currentTime = 0; }catch(e){}
+  const p = omvVid.play();
+  if(p && p.catch) p.catch(()=>{});
+}
+function closeOMV(){ try{ omvVid.pause(); }catch(e){} omvEl.classList.remove("show"); }
+omvVid.addEventListener("error", ()=>{ omvEl.classList.remove("show"); if(typeof playPV==="function") playPV(); });
+$("#omv-close").addEventListener("click", closeOMV);
+$("#pv-play").addEventListener("click", openOMV);
 $("#pv-skip").addEventListener("click", pvSkip);
 
 if(LOTTERY){

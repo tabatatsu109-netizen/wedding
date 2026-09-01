@@ -3,6 +3,7 @@
 *.MOV
 *.mov
 *.mp4
+!omv.mp4
 videos/
 .claude/
 
