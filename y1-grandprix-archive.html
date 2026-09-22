@@ -4,7 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#000">
-<title>W-1グランプリ 公式サイト</title>
+<title>W-1グランプリ 公式サイト｜大森安藤</title>
+<meta name="description" content="結婚頂上決戦「W-1グランプリ」大森安藤 公式サイト。2026.10.11 挙式。日程・コンビ情報・審査員採点・特報ムービー公開中！">
+<meta name="robots" content="noindex, nofollow">
+<!-- LINE/SNSで共有した時のプレビュー -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="W-1グランプリ｜大森安藤 結婚頂上決戦">
+<meta property="og:description" content="2026.10.11、大森秀紀・茜の結婚頂上決戦。特報ムービー公開中！">
+<meta property="og:image" content="https://tabatatsu109-netizen.github.io/wedding/top.jpg">
+<meta property="og:url" content="https://tabatatsu109-netizen.github.io/wedding/">
+<meta name="twitter:card" content="summary_large_image">
 <!--
 ================================================================
  結婚式オープニングムービー用サイト v3「Y-1グランプリ」
@@ -1156,6 +1165,9 @@ const CONFIG = {
    共通
 ================================================================ */
 const $ = s => document.querySelector(s);
+/* localStorage をシークレット/制限環境でも壊さない安全ラッパ */
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
 const params = new URLSearchParams(location.search);
 const AUTO = params.get("auto") === "1";
 const INTRO = AUTO || params.get("intro") === "1";
@@ -1388,7 +1400,7 @@ async function loadReviews(){
       return;
     }catch(e){ console.warn("JSONBin読込失敗:",e); }
   }
-  const local = JSON.parse(localStorage.getItem(LS_KEY)||"[]");
+  const local = JSON.parse(lsGet(LS_KEY)||"[]");
   renderReviews([...CONFIG.sampleReviews, ...local]);
 }
 async function submitReview(){
@@ -1413,9 +1425,9 @@ async function submitReview(){
       renderReviews(rec.reviews);
     }catch(e){ alert("送信に失敗しました。時間をおいて再度お試しください。"); return; }
   }else{
-    const local = JSON.parse(localStorage.getItem(LS_KEY)||"[]");
+    const local = JSON.parse(lsGet(LS_KEY)||"[]");
     local.push(item);
-    localStorage.setItem(LS_KEY, JSON.stringify(local));
+    lsSet(LS_KEY, JSON.stringify(local));
     renderReviews([...CONFIG.sampleReviews, ...local]);
   }
   $("#rv-name").value=""; $("#rv-text").value="";
@@ -1751,7 +1763,7 @@ function initLotteryGuest(){
   $("#lt-head").textContent = L.title || "W-1 敗者復活抽選";
   $("#lt-sub").textContent  = L.subtitle || "エントリー番号を引いてください";
   ltLogo(); ltMakeParticles();
-  const saved = localStorage.getItem(LT_LS);
+  const saved = lsGet(LT_LS);
   if(saved){ showGuestCard(Number(saved)); return; }
   $("#lt-display").hidden=false; $("#lt-digits").textContent="0000";
   $("#lt-note").textContent="ボタンを押して、あなたのエントリー番号を決定します（お一人1回）。";
@@ -1764,7 +1776,7 @@ async function drawGuest(){
   $("#lt-note").textContent="抽選中…";
   const n = 1 + Math.floor(Math.random()*ltRange());
   await spinDigits($("#lt-digits"), n, 2200);
-  localStorage.setItem(LT_LS, String(n));
+  lsSet(LT_LS, String(n));
   disp.classList.add("win"); ltFanfare();
   showGuestCard(n);
 }
