@@ -920,7 +920,8 @@ const CONFIG = {
         <a href="#score">審査員採点</a>
         <a href="#capsule">タイムカプセル</a>
         <a href="#history">大会の歴史</a>
-        <a href="#message">決勝</a>
+        <a href="#message">ご挨拶</a>
+        <a href="#" id="nav-movie">動画</a>
       </nav>
     </div>
   </header>
@@ -1641,35 +1642,41 @@ async function runTimeline(){
     await clickAt();
     showSite();
 
-    await moveCursorTo(innerWidth*0.72, innerHeight*0.6, 800);
-    await sleep(4000);                                   // KV＋カウンター
+    // === サイト到着後：上部ナビをクリックして巡回するツアー ===
+    await moveCursorTo(innerWidth*0.72, innerHeight*0.55, 800);
+    await sleep(3000);                                   // KV＋因縁カウンターを見せる
 
-    await scrollToY(sectionY("#news"), 1300);
-    await sleep(2200);
-    await scrollToY(sectionY("#schedule"), 1400);
-    await sleep(1600);
-    await scrollToY(sectionY("#schedule") + 300, 3000);  // 通過スタンプを順に
-    await sleep(1600);
+    // ① お知らせ
+    await moveToEl("nav.gnav a[href='#news']", 900);
+    await sleep(300); await clickAt();
+    await scrollToY(sectionY("#news"), 1000);
+    await sleep(3000);
 
-    await scrollToY(sectionY("#finalists"), 1400);
-    await sleep(1200);
-    await moveToEl(".fin-card:nth-child(1)", 800);
-    await sleep(2600);
-    await moveToEl(".fin-card:nth-child(2)", 800);
-    await sleep(2600);
+    // ② コンビ情報（少し下へスクロールして「はにゃ〜、しあわせ！」まで）
+    await moveToEl("nav.gnav a[href='#finalists']", 900);
+    await sleep(300); await clickAt();
+    await scrollToY(sectionY("#finalists"), 1100);
+    await sleep(2000);
+    await scrollToY(sectionY(".fin-card:nth-child(2) .fin-shout", -innerHeight*0.62), 1500);
+    await sleep(3400);
 
-    await scrollToY(sectionY("#score"), 1400);
-    await sleep(1600);
-    await scrollToY(sectionY("#score") + 340, 3800);
-    await sleep(2400);
+    // ③ 大会の歴史
+    await moveToEl("nav.gnav a[href='#history']", 900);
+    await sleep(300); await clickAt();
+    await scrollToY(sectionY("#history"), 1100);
+    await sleep(3200);
 
-    await scrollToY(sectionY("#capsule"), 1500);
-    await sleep(1400);
-    await moveToEl(".cap-card:nth-child(1)", 900);
-    await sleep(2600);
+    // ④ ご挨拶
+    await moveToEl("nav.gnav a[href='#message']", 900);
+    await sleep(300); await clickAt();
+    await scrollToY(sectionY("#message"), 1200);
+    await sleep(4500);
 
-    await scrollToY(sectionY("#message"), 1600);
-    await sleep(5500);
+    // ⑤ 動画 → オープニングムービー再生へ（ここで終了・フィナーレ無し）
+    await moveToEl("#nav-movie", 900);
+    await sleep(400); await clickAt();
+    openOMV();
+    return;
   }
 
   /* フィナーレ */
@@ -2010,6 +2017,7 @@ function closeOMV(){ try{ omvVid.pause(); }catch(e){} omvEl.classList.remove("sh
 omvVid.addEventListener("error", ()=>{ omvEl.classList.remove("show"); if(typeof playPV==="function") playPV(); });
 $("#omv-close").addEventListener("click", closeOMV);
 $("#pv-play").addEventListener("click", openOMV);
+$("#nav-movie").addEventListener("click", (e)=>{ e.preventDefault(); openOMV(); });
 $("#pv-skip").addEventListener("click", pvSkip);
 
 if(LOTTERY){
