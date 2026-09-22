@@ -742,7 +742,7 @@ const CONFIG = {
   championName: "大森安藤",
   airDate: '10.11 <b>SUN</b> あさ10時30分 挙式（恵比寿 エレガンテヴィータ）',
   groomPhoto: "trio2.jpg",    // 左カラム＝新郎（秀紀＋陽）
-  bridePhoto: "trio1.jpg",    // 右カラム＝新婦（茜）
+  bridePhoto: "bride.jpg",    // 右カラム＝新婦（茜・ドジャースタジアム）
   winnerPhoto: "",   // 中央「優勝の瞬間」サムネイル（ポスター表示中は非表示）
   secretPhoto: "trio2.jpg",  // 検索結果から誤って出てくる新郎の"変な写真"
   posterImage: "top.jpg",           // KV中央にどかんと出すメインビジュアル（ポスター）
@@ -781,7 +781,7 @@ const CONFIG = {
       intro:"私の名は",
       name:"大森 茜",
       role:"新婦｜結成2024年・所属 大森安藤",
-      photo:"trio1.jpg",
+      photo:"bride.jpg",
       text:"分量をきっちり計る正確派の料理上手。ドジャースと大谷翔平をこよなく愛するが、負けている時はそっとチャンネルを変える名采配。口ぐせは「はにゃ〜」、得意技は睡魔との共存。",
       shout:"はにゃ〜、しあわせ！",
       tags:["#ドジャース","#ドジャー・スタジアム","#大谷翔平"]
@@ -1158,6 +1158,8 @@ const $ = s => document.querySelector(s);
 const params = new URLSearchParams(location.search);
 const AUTO = params.get("auto") === "1";
 const INTRO = AUTO || params.get("intro") === "1";
+const BRIDGE = params.get("bridge") === "1";        // ?bridge=1 で「検索→HP突入」収録
+const BRIDGE_CLEAN = params.get("clean") === "1";   // &clean=1 で変な写真ギャグ抜き
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
@@ -1542,6 +1544,50 @@ function sectionY(sel, offset=-70){
    35秒版が欲しい場合は SHORT=true にしてください。
 ================================================================ */
 const SHORT = params.get("short") === "1";   // ?auto=1&short=1 で35秒版
+
+/* ===== bridge収録モード：動画用「検索→（変な写真の寄り道）→公式サイト突入」で静止 =====
+   ?bridge=1        … ギャグ入り（変な写真の寄り道あり）
+   ?bridge=1&clean=1 … スッキリ（検索→結果→公式→HP） */
+async function runBridge(){
+  cursor.classList.add("show");
+  setCursor(innerWidth/2, innerHeight*0.8);
+  await sleep(1000);
+  await moveToEl("#se-box", 1000);
+  await clickAt();
+  await sleep(400);
+  await typeInto("#se-input", "M-1グラン");        // わざと打ちかけて…
+  await sleep(750);
+  await backspaceAll("#se-input");                 // 消して
+  await sleep(300);
+  await typeInto("#se-input", CONFIG.searchQuery);  // 本命「W-1グランプリ」
+  await sleep(650);
+  await moveToEl("#se-search", 800);
+  await sleep(250);
+  await clickAt();
+  showResults(CONFIG.searchQuery);
+  await sleep(1200);
+  if(!BRIDGE_CLEAN){
+    await moveToEl("#rs-photo", 900);            // 新郎の変な写真リンクへ
+    await sleep(450);
+    await clickAt();
+    showPhoto();                                 // 変な写真がドーンと
+    await sleep(2400);                           // 「うわっ…」の間
+    await moveToEl("#ph-back", 650);             // 慌てて戻る
+    await sleep(350);
+    await clickAt();
+    hidePhoto();
+    await sleep(900);
+  }
+  await moveToEl("#rs-official", 900);           // 気を取り直して公式サイトへ
+  await sleep(550);
+  await clickAt();
+  showSite();                                    // ホームページ突入
+  window.scrollTo(0,0);
+  await moveCursorTo(innerWidth*0.5, innerHeight*0.5, 700);
+  await sleep(2500);                             // KVを見せてホールド
+  cursor.classList.remove("show");
+  // フィナーレ無し・サイト表示のまま静止（録画を止めやすい）
+}
 
 async function runTimeline(){
   cursor.classList.add("show");
@@ -1968,16 +2014,16 @@ $("#pv-skip").addEventListener("click", pvSkip);
 
 if(LOTTERY){
   startLottery();
-}else if(INTRO){
+}else if(INTRO || BRIDGE){
   $("#search-screen").classList.remove("hidden");
   $("#site").classList.remove("show");
-  if(AUTO){
+  if(AUTO || BRIDGE){
     $("#se-input").readOnly = true;
     $("#rec-panel").classList.add("show");
     $("#rec-start").addEventListener("click", ()=>{
       initAudio();
       $("#rec-panel").classList.remove("show");
-      runTimeline();
+      if(BRIDGE) runBridge(); else runTimeline();
     });
   }
 }else{
