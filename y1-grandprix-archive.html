@@ -848,6 +848,11 @@ const CONFIG = {
     ],
   },
 
+  /* 審査員採点をリアルタイム共有（Firebase Firestore）。
+     Firebase Console でプロジェクト作成 → Firestore有効化 → Webアプリ登録 → 下の設定を貼る。
+     空のままなら従来どおり端末内保存（＝共有されません）。 */
+  firebase: { apiKey:"", authDomain:"", projectId:"", storageBucket:"", messagingSenderId:"", appId:"" },
+
   jsonbin: { binId:"", apiKey:"" },
   sound: true,
 };
@@ -1389,17 +1394,30 @@ function renderReviews(list){
     $("#score-avg-num").innerHTML = `${avg.toFixed(1)}<small> 点</small>`;
   }
 }
+/* --- Firebase(Firestore) でリアルタイム共有。CONFIG.firebase 設定時のみ有効 --- */
+let reviewsDB = null;
+function loadScript(src){ return new Promise((res,rej)=>{ const s=document.createElement("script"); s.src=src; s.onload=res; s.onerror=rej; document.head.appendChild(s); }); }
+async function initReviewsDB(){
+  const fb = CONFIG.firebase;
+  if(!fb || !fb.projectId) return null;
+  try{
+    await loadScript("https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js");
+    await loadScript("https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js");
+    if(!firebase.apps.length) firebase.initializeApp(fb);
+    return firebase.firestore();
+  }catch(e){ console.warn("Firebase初期化失敗:",e); return null; }
+}
 async function loadReviews(){
-  const {binId, apiKey} = CONFIG.jsonbin;
-  if(binId && apiKey){
-    try{
-      const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`,{headers:{"X-Master-Key":apiKey}});
-      const json = await res.json();
-      const list = json.record?.reviews || [];
-      renderReviews(list.length ? list : CONFIG.sampleReviews);
-      return;
-    }catch(e){ console.warn("JSONBin読込失敗:",e); }
+  reviewsDB = await initReviewsDB();
+  if(reviewsDB){
+    /* リアルタイム購読：誰かが投稿したら即、全員の画面に反映される */
+    reviewsDB.collection("reviews").orderBy("ts","asc").onSnapshot(snap=>{
+      const arr = snap.docs.map(d=>d.data());
+      renderReviews([...CONFIG.sampleReviews, ...arr]);
+    }, err=>console.warn("Firestore購読失敗:",err));
+    return;
   }
+  /* フォールバック：端末内保存（共有されません） */
   const local = JSON.parse(lsGet(LS_KEY)||"[]");
   renderReviews([...CONFIG.sampleReviews, ...local]);
 }
@@ -1409,28 +1427,20 @@ async function submitReview(){
   const score = Number($("#rv-score").value);
   if(!name || !text){ alert("お名前とコメントを入力してください"); return; }
   const item = { name: name.startsWith("審査員")?name:`審査員：${name}`, text, score,
-    date: new Date().toLocaleDateString("ja-JP",{year:"numeric",month:"2-digit"}).replace("/",".") };
-  const {binId, apiKey} = CONFIG.jsonbin;
-  if(binId && apiKey){
-    try{
-      const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`,{headers:{"X-Master-Key":apiKey}});
-      const json = await res.json();
-      const rec = json.record || {reviews:[]};
-      rec.reviews = [...(rec.reviews||[]), item];
-      await fetch(`https://api.jsonbin.io/v3/b/${binId}`,{
-        method:"PUT",
-        headers:{"Content-Type":"application/json","X-Master-Key":apiKey},
-        body: JSON.stringify(rec)
-      });
-      renderReviews(rec.reviews);
-    }catch(e){ alert("送信に失敗しました。時間をおいて再度お試しください。"); return; }
-  }else{
-    const local = JSON.parse(lsGet(LS_KEY)||"[]");
-    local.push(item);
-    lsSet(LS_KEY, JSON.stringify(local));
-    renderReviews([...CONFIG.sampleReviews, ...local]);
-  }
+    date: new Date().toLocaleDateString("ja-JP",{year:"numeric",month:"2-digit"}).replace("/","."),
+    ts: Date.now() };
+  const btn = $("#rv-submit"); if(btn) btn.disabled = true;
+  try{
+    if(reviewsDB){
+      await reviewsDB.collection("reviews").add(item);   // 購読側が自動で反映
+    }else{
+      const local = JSON.parse(lsGet(LS_KEY)||"[]");
+      local.push(item); lsSet(LS_KEY, JSON.stringify(local));
+      renderReviews([...CONFIG.sampleReviews, ...local]);
+    }
+  }catch(e){ alert("送信に失敗しました。電波の良い場所で再度お試しください。"); if(btn) btn.disabled=false; return; }
   $("#rv-name").value=""; $("#rv-text").value="";
+  if(btn) btn.disabled = false;
   alert("採点を掲載しました。ご審査ありがとうございます！");
 }
 
