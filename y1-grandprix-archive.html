@@ -720,6 +720,26 @@ footer{background:#000;border-top:2px solid var(--red);padding:42px 20px 56px;
   color:#fff;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.4);border-radius:99px;
   padding:10px 20px;cursor:pointer;letter-spacing:1px;}
 .omv-close:hover{background:rgba(0,0,0,.85);}
+/* タイムカプセル：手紙入力フォーム（?capsule=write 専用・隠し） */
+#capsule-write{position:fixed;inset:0;z-index:9800;overflow-y:auto;display:none;
+  align-items:center;justify-content:center;padding:24px 16px;
+  background:repeating-linear-gradient(-45deg, rgba(201,160,63,.05) 0 2px, transparent 2px 14px),#0a0a0a;}
+#capsule-write.show{display:flex;}
+.cw-panel{width:min(560px,94%);background:var(--panel);border:1px solid var(--gold);border-radius:12px;
+  padding:28px 24px 26px;box-shadow:0 0 40px rgba(255,190,60,.2);}
+.cw-title{font-size:clamp(18px,4vw,22px);font-weight:900;letter-spacing:2px;color:#fff;text-align:center;}
+.cw-sub{font-size:13px;color:var(--gold-bright);text-align:center;margin:8px 0 18px;font-weight:700;}
+.cw-who{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:14px;}
+.cw-who label{flex:1;min-width:170px;display:flex;align-items:center;gap:8px;justify-content:center;
+  border:1px solid var(--line);border-radius:8px;padding:12px;font-weight:900;cursor:pointer;color:#eee;}
+.cw-who label:has(input:checked){border-color:var(--gold);background:#1c1408;color:var(--gold-bright);}
+.cw-panel textarea{width:100%;min-height:190px;resize:vertical;font-family:inherit;font-size:15px;line-height:1.9;
+  border:1px solid var(--line);background:#000;color:#fff;padding:14px;border-radius:8px;outline-color:var(--gold);}
+.cw-btn{margin-top:14px;width:100%;font-family:inherit;font-size:16px;font-weight:900;letter-spacing:3px;
+  color:#3a2404;background:linear-gradient(180deg,#f2c14e,#c98f1e);border:none;border-radius:99px;padding:15px;cursor:pointer;}
+.cw-btn:hover{filter:brightness(1.06);}
+.cw-btn:disabled{opacity:.5;cursor:default;}
+.cw-msg{margin-top:14px;text-align:center;font-size:14px;font-weight:700;color:var(--gold-bright);line-height:1.8;min-height:1.4em;}
 
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
 </style>
@@ -809,8 +829,8 @@ const CONFIG = {
   capsule: {
     openDate: "",   // 空ならweddingDateの1年後
     letters: [
-      { from:"秀紀", to:"茜", b64:"" },
-      { from:"茜", to:"秀紀", b64:"" },
+      { who:"hideki", from:"秀紀", to:"茜", b64:"" },
+      { who:"akane",  from:"茜", to:"秀紀", b64:"" },
     ]
   },
 
@@ -1167,6 +1187,21 @@ const CONFIG = {
   <button id="omv-close" class="omv-close">✕ 閉じる</button>
 </div>
 
+<!-- タイムカプセル：手紙入力フォーム（?capsule=write 専用・隠し） -->
+<div id="capsule-write">
+  <div class="cw-panel">
+    <div class="cw-title">タイムカプセル｜手紙を封入 🔒</div>
+    <div class="cw-sub">1年後の開封まで、相手にも誰にも読めません</div>
+    <div class="cw-who">
+      <label><input type="radio" name="cw-who" value="hideki"> 秀紀 → 茜 へ</label>
+      <label><input type="radio" name="cw-who" value="akane"> 茜 → 秀紀 へ</label>
+    </div>
+    <textarea id="cw-text" placeholder="1年後の二人へ、いまの気持ちを…" maxlength="3500"></textarea>
+    <button id="cw-submit" class="cw-btn">封入する</button>
+    <div id="cw-msg" class="cw-msg"></div>
+  </div>
+</div>
+
 <script>
 /* ================================================================
    共通
@@ -1180,6 +1215,7 @@ const AUTO = params.get("auto") === "1";
 const INTRO = AUTO || params.get("intro") === "1";
 const BRIDGE = params.get("bridge") === "1";        // ?bridge=1 で「検索→HP突入」収録
 const BRIDGE_CLEAN = params.get("clean") === "1";   // &clean=1 で変な写真ギャグ抜き
+const CAPWRITE = params.get("capsule") === "write";  // ?capsule=write で手紙入力フォーム（おふたり専用）
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
@@ -1331,10 +1367,21 @@ function capsuleOpenDate(){
 function b64decode(b){
   try{ return decodeURIComponent(escape(atob(b))); }catch(e){ return ""; }
 }
+let capsuleLetters = {};  // Firestoreから読み込んだ手紙 {hideki:"...", akane:"..."}（開封後のみ）
+async function loadCapsuleLetters(){
+  if(Date.now() < capsuleOpenDate().getTime()) return;  // 封印中は読まない（ルールでも拒否）
+  try{
+    const db = await initReviewsDB();
+    if(!db) return;
+    const snap = await db.collection("capsule").get();
+    snap.forEach(d=>{ capsuleLetters[d.id] = (d.data().text)||""; });
+    renderCapsule();
+  }catch(e){ /* 開封前は読み取り拒否 */ }
+}
 function renderCapsule(){
   const open = Date.now() >= capsuleOpenDate().getTime();
   $("#cap-grid").innerHTML = CONFIG.capsule.letters.map(l=>{
-    const body = l.b64 ? b64decode(l.b64) : "";
+    const body = capsuleLetters[l.who] || (l.b64 ? b64decode(l.b64) : "");
     if(open && body){
       return `<div class="cap-card open">
         <span class="cap-seal">OPENED</span>
@@ -1402,15 +1449,20 @@ function renderReviews(list){
 /* --- Firebase(Firestore) でリアルタイム共有。CONFIG.firebase 設定時のみ有効 --- */
 let reviewsDB = null;
 function loadScript(src){ return new Promise((res,rej)=>{ const s=document.createElement("script"); s.src=src; s.onload=res; s.onerror=rej; document.head.appendChild(s); }); }
-async function initReviewsDB(){
+let _dbPromise = null;
+function initReviewsDB(){
+  if(_dbPromise) return _dbPromise;   // 二重ロード防止（審査員採点・タイムカプセルで共用）
   const fb = CONFIG.firebase;
-  if(!fb || !fb.projectId) return null;
-  try{
-    await loadScript("https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js");
-    await loadScript("https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js");
-    if(!firebase.apps.length) firebase.initializeApp(fb);
-    return firebase.firestore();
-  }catch(e){ console.warn("Firebase初期化失敗:",e); return null; }
+  if(!fb || !fb.projectId) return Promise.resolve(null);
+  _dbPromise = (async()=>{
+    try{
+      await loadScript("https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js");
+      await loadScript("https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js");
+      if(!firebase.apps.length) firebase.initializeApp(fb);
+      return firebase.firestore();
+    }catch(e){ console.warn("Firebase初期化失敗:",e); return null; }
+  })();
+  return _dbPromise;
 }
 async function loadReviews(){
   reviewsDB = await initReviewsDB();
@@ -2026,6 +2078,7 @@ render();
 renderCapsule();
 tickCounter();
 loadReviews();
+loadCapsuleLetters();
 $("#rv-submit").addEventListener("click", submitReview);
 $("#se-search").addEventListener("click",()=>showResults($("#se-input").value));
 $("#se-input").addEventListener("keydown",e=>{ if(e.key==="Enter") showResults(e.target.value); });
@@ -2047,7 +2100,31 @@ $("#pv-play").addEventListener("click", openOMV);
 $("#nav-movie").addEventListener("click", (e)=>{ e.preventDefault(); openOMV(); });
 $("#pv-skip").addEventListener("click", pvSkip);
 
-if(LOTTERY){
+async function initCapsuleWrite(){
+  $("#capsule-write").classList.add("show");
+  const db = await initReviewsDB();
+  $("#cw-submit").addEventListener("click", async ()=>{
+    const sel = document.querySelector('input[name="cw-who"]:checked');
+    const text = $("#cw-text").value.trim();
+    const msg = $("#cw-msg");
+    if(!sel){ msg.style.color="var(--red)"; msg.textContent="「秀紀→茜」か「茜→秀紀」を選んでください"; return; }
+    if(!text){ msg.style.color="var(--red)"; msg.textContent="手紙を入力してください"; return; }
+    if(!db){ msg.style.color="var(--red)"; msg.textContent="接続エラー。電波の良い場所で再度お試しください"; return; }
+    const who = sel.value;
+    const info = { hideki:{from:"秀紀",to:"茜"}, akane:{from:"茜",to:"秀紀"} }[who];
+    const btn=$("#cw-submit"); btn.disabled=true;
+    try{
+      await db.collection("capsule").doc(who).set({ who, from:info.from, to:info.to, text, ts:Date.now() });
+      msg.style.color="var(--gold-bright)";
+      msg.innerHTML = `✅ 封入しました！<br>開封は ${capsuleOpenDate().getFullYear()} 年。ありがとう🔒`;
+      $("#cw-text").value="";
+    }catch(e){ msg.style.color="var(--red)"; msg.textContent="保存に失敗しました。再度お試しください。"; }
+    btn.disabled=false;
+  });
+}
+if(CAPWRITE){
+  initCapsuleWrite();
+}else if(LOTTERY){
   startLottery();
 }else if(INTRO || BRIDGE){
   $("#search-screen").classList.remove("hidden");
