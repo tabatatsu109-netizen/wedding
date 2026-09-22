@@ -803,12 +803,7 @@ const CONFIG = {
   ],
 
   /* 審査員採点のサンプル（JSONBin未設定時） */
-  sampleReviews: [
-    { name:"審査員：新郎の友人", score:96, date:"2026.09", text:"ヒッチハイクで日本中を渡り歩いた男が、ついに茜さんの隣に定住。減点なし。" },
-    { name:"審査員：新婦の友人", score:98, date:"2026.09", text:"分量をきっちり計る茜さんの料理は、もはや芸術の域。この二人、隙がない。" },
-    { name:"審査員：職場の同僚", score:90, date:"2026.09", text:"ドジャースが負けるとチャンネルを変える茜さんだけ、あと一歩。それ以外は文句なし。" },
-    { name:"審査員長：ご家族", score:99, date:"2026.10", text:"秀紀くん、茜さん。良いときも悪いときも、二人で笑い合える家庭を。ずっと応援しています。" },
-  ],
+  sampleReviews: [],   // 本番用に空。ゲストの投稿だけがライブ表示される
 
   /* タイムカプセル */
   capsule: {
@@ -1388,6 +1383,11 @@ function tickCapsule(){
 ================================================================ */
 const LS_KEY = "y1-scores";
 function renderReviews(list){
+  if(!list.length){
+    $("#rv-list").innerHTML = `<div style="text-align:center;padding:36px 14px;color:var(--gray);font-size:14px;font-weight:700;line-height:2;">まだ採点がありません。<br>最初の審査員は、あなたです！</div>`;
+    $("#score-avg-num").innerHTML = `--<small> 点</small>`;
+    return;
+  }
   $("#rv-list").innerHTML = list.map(r=>`
     <div class="rv-card">
       <div class="rv-score">${r.score}<small>点</small></div>
@@ -1396,10 +1396,8 @@ function renderReviews(list){
         <div class="rv-text">${escapeHtml(r.text)}</div>
       </div>
     </div>`).join("");
-  if(list.length){
-    const avg = list.reduce((a,r)=>a+Number(r.score||0),0)/list.length;
-    $("#score-avg-num").innerHTML = `${avg.toFixed(1)}<small> 点</small>`;
-  }
+  const avg = list.reduce((a,r)=>a+Number(r.score||0),0)/list.length;
+  $("#score-avg-num").innerHTML = `${avg.toFixed(1)}<small> 点</small>`;
 }
 /* --- Firebase(Firestore) でリアルタイム共有。CONFIG.firebase 設定時のみ有効 --- */
 let reviewsDB = null;
