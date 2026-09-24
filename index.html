@@ -490,11 +490,12 @@ section.block{padding:76px 20px;border-bottom:1px solid var(--line);}
 .rv-form h3{font-size:15px;font-weight:900;letter-spacing:2px;margin-bottom:4px;}
 .rv-form .sub{font-size:12px;color:var(--gray);margin-bottom:18px;}
 .rv-form .row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px;}
-.rv-form input[type=text],.rv-form textarea,.rv-form select{
+.rv-form input[type=text],.rv-form input[type=number],.rv-form textarea,.rv-form select{
   font-family:inherit;font-size:14px;border:1px solid var(--line);
   background:#000;color:#fff;padding:10px 14px;outline-color:var(--red);}
 .rv-form input[type=text]{flex:1;min-width:180px;}
-.rv-form select{font-family:'Oswald';font-size:16px;letter-spacing:1px;}
+.rv-form select,.rv-form input[type=number]{font-family:'Oswald';font-size:18px;letter-spacing:1px;
+  width:120px;flex:none;text-align:center;}
 .rv-form textarea{width:100%;min-height:90px;resize:vertical;}
 .rv-form button{font-family:inherit;font-size:14px;font-weight:900;color:#fff;
   background:var(--red);border:none;padding:13px 40px;cursor:pointer;
@@ -1057,17 +1058,10 @@ const CONFIG = {
       <div class="rv-list" id="rv-list"></div>
       <div class="rv-form">
         <h3>あなたも審査員に</h3>
-        <p class="sub">お二人に点数とコメントをお願いします（88〜99点）</p>
+        <p class="sub">お二人に点数とコメントをお願いします（点数は自由！100点でも、315点でもOK🔥）</p>
         <div class="row">
           <input type="text" id="rv-name" placeholder="お名前（例：高校の友人 K）" maxlength="30">
-          <select id="rv-score">
-            <option value="99">99</option><option value="98">98</option>
-            <option value="97">97</option><option value="96">96</option>
-            <option value="95" selected>95</option><option value="94">94</option>
-            <option value="93">93</option><option value="92">92</option>
-            <option value="91">91</option><option value="90">90</option>
-            <option value="89">89</option><option value="88">88</option>
-          </select>
+          <input type="number" id="rv-score" value="100" step="1" inputmode="numeric" aria-label="点数（何点でもOK）">
         </div>
         <textarea id="rv-text" placeholder="審査コメント・お二人へのメッセージ" maxlength="300"></textarea>
         <div class="row" style="margin-top:12px;"><button id="rv-submit">採点する</button></div>
@@ -1481,7 +1475,9 @@ async function loadReviews(){
 async function submitReview(){
   const name = $("#rv-name").value.trim();
   const text = $("#rv-text").value.trim();
-  const score = Number($("#rv-score").value);
+  const rawScore = $("#rv-score").value.trim();
+  let score = Number(rawScore);
+  if(rawScore==="" || isNaN(score)) score = 100;   // 空/非数値なら100点
   if(!name || !text){ alert("お名前とコメントを入力してください"); return; }
   const item = { name: name.startsWith("審査員")?name:`審査員：${name}`, text, score,
     date: new Date().toLocaleDateString("ja-JP",{year:"numeric",month:"2-digit"}).replace("/","."),
