@@ -461,6 +461,30 @@ section.block{padding:76px 20px;border-bottom:1px solid var(--line);}
 .fin-tags span{font-size:11px;font-weight:700;color:var(--gray);
   border:1px solid var(--line);padding:2px 10px;}
 
+/* 本日のネタ順（コース料理・ドリンク） */
+.menu-sub-head{font-size:12.5px;color:var(--gray);margin:-14px 0 30px;line-height:2;}
+.menu-list{border-top:1px solid var(--line);margin-bottom:56px;}
+.menu-item{display:grid;grid-template-columns:110px 1fr;gap:20px;
+  padding:22px 8px;border-bottom:1px solid var(--line);}
+@media(max-width:560px){.menu-item{grid-template-columns:1fr;gap:8px;}}
+.menu-round{font-family:'Oswald';font-weight:700;font-size:14px;color:var(--red);
+  letter-spacing:2px;}
+.menu-round small{display:block;font-size:10px;color:var(--gray);
+  font-family:'Noto Sans JP';letter-spacing:1px;font-weight:700;margin-top:4px;}
+.menu-title{font-size:17px;font-weight:900;letter-spacing:1px;}
+.menu-dishes{list-style:none;margin-top:8px;padding:0;}
+.menu-dishes li{font-size:13.5px;color:#cfcfcf;line-height:2;padding-left:16px;position:relative;}
+.menu-dishes li::before{content:"・";position:absolute;left:0;color:var(--gold);}
+.menu-comment{margin-top:10px;font-size:12px;color:var(--gold-bright);font-weight:700;}
+.menu-comment::before{content:"👨‍⚖️ ";}
+.drink-block{margin-bottom:30px;}
+.drink-block:last-child{margin-bottom:0;}
+.drink-block h3{font-size:15px;font-weight:900;letter-spacing:2px;margin-bottom:16px;
+  color:var(--gold-bright);}
+.drink-chips{display:flex;flex-wrap:wrap;gap:10px;}
+.drink-chips span{font-size:12.5px;font-weight:700;color:#eee;border:1px solid var(--line);
+  background:var(--panel);padding:6px 16px;letter-spacing:1px;}
+
 /* 審査員採点 */
 .score-avg{
   text-align:center;margin-bottom:36px;background:#000;border:1px solid var(--gold);
@@ -818,6 +842,31 @@ const CONFIG = {
     }
   ],
 
+  /* 本日のネタ順（コース料理） */
+  courses: [
+    { round:"1本目", sub:"OPENING", title:"前菜盛り合わせ",
+      items:["季節野菜のタルトレット","彩り野菜のサラダ","トマトとモッツァレラのカプレーゼ","牛ほほ肉のリエットのカナッペパン"],
+      comment:"つかみは上々、幸先の良いスタートです" },
+    { round:"2本目", sub:"2nd NETA", title:"シェフお任せパスタ",
+      items:[],
+      comment:"中盤も一切緩みなし、シェフの本気ネタ" },
+    { round:"3本目", sub:"3rd NETA", title:"本日のお魚料理",
+      items:["赤魚のポワレ"],
+      comment:"魚介の旨みで満場一致の高得点" },
+    { round:"4本目", sub:"4th NETA", title:"本日のお肉料理",
+      items:["大山鶏のグリル 〜ハニーマスタード〜","ローストビーフ 〜ポリネシアンソース〜"],
+      comment:"二本立てで畳みかける、大トリ前の見せ場" },
+    { round:"ラストネタ", sub:"FINAL NETA", title:"デザート",
+      items:[],
+      comment:"甘く締めくくり、そのまま満点優勝" },
+  ],
+
+  /* 祝勝ドリンク */
+  drinks: {
+    alcohol: ["ビール","ウィスキー","ワイン（赤）","ワイン（白）","カシス","カンパリ","ジン","ウォッカ"],
+    soft: ["オレンジジュース","グレープフルーツジュース"],
+  },
+
   /* エントリー一覧（M-1風エントリーカード画像を並べる） */
   entries: [
     { img:"entry1.png", name:"ファイブスターズ", no:"ENTRY No.4224" },
@@ -954,6 +1003,7 @@ const CONFIG = {
         <a href="#news">お知らせ</a>
         <a href="#schedule">日程・結果</a>
         <a href="#finalists">コンビ情報</a>
+        <a href="#menu">本日のメニュー</a>
         <a href="#score">審査員採点</a>
         <a href="#capsule">タイムカプセル</a>
         <a href="#history">大会の歴史</a>
@@ -1040,6 +1090,21 @@ const CONFIG = {
         <span class="sec-en osw">FINALIST</span><span class="sec-ja">コンビ情報</span>
       </div>
       <div class="fin-grid" id="fin-grid"></div>
+    </div>
+  </section>
+
+  <section class="block" id="menu">
+    <div class="block-inner">
+      <div class="sec-head">
+        <span class="sec-en osw">MENU</span><span class="sec-ja">本日のネタ順（コース料理）</span>
+      </div>
+      <p class="menu-sub-head">決勝戦（披露宴）で振る舞われるお料理は、全五本のネタで構成。じっくりご堪能ください。</p>
+      <div class="menu-list" id="menu-list"></div>
+
+      <div class="sec-head">
+        <span class="sec-en osw">DRINK</span><span class="sec-ja">祝勝ドリンク</span>
+      </div>
+      <div id="drink-list"></div>
     </div>
   </section>
 
@@ -1310,6 +1375,26 @@ function render(){
         <div class="fin-tags">${f.tags.map(t=>`<span>${escapeHtml(t)}</span>`).join("")}</div>
       </div>
     </div>`).join("");
+
+  $("#menu-list").innerHTML = CONFIG.courses.map(c=>`
+    <div class="menu-item">
+      <div class="menu-round">${escapeHtml(c.round)}<small>${escapeHtml(c.sub)}</small></div>
+      <div>
+        <div class="menu-title">${escapeHtml(c.title)}</div>
+        ${c.items.length?`<ul class="menu-dishes">${c.items.map(i=>`<li>${escapeHtml(i)}</li>`).join("")}</ul>`:""}
+        <div class="menu-comment">${escapeHtml(c.comment)}</div>
+      </div>
+    </div>`).join("");
+
+  $("#drink-list").innerHTML = `
+    <div class="drink-block">
+      <h3>アルコール</h3>
+      <div class="drink-chips">${CONFIG.drinks.alcohol.map(d=>`<span>${escapeHtml(d)}</span>`).join("")}</div>
+    </div>
+    <div class="drink-block">
+      <h3>ソフトドリンク</h3>
+      <div class="drink-chips">${CONFIG.drinks.soft.map(d=>`<span>${escapeHtml(d)}</span>`).join("")}</div>
+    </div>`;
 
   $("#hist-list").innerHTML = CONFIG.historyYears.map(h=>`
     <div class="hist-item">
