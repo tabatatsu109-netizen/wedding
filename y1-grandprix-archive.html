@@ -448,6 +448,33 @@ section.block{padding:76px 20px;border-bottom:1px solid var(--line);}
 .st-msg{font-size:12.5px;color:var(--gray);margin-top:10px;}
 .st-msg:empty{display:none;}
 
+/* 表示切替（会場マップ／全員の席次表） */
+.st-tabs{display:flex;width:fit-content;max-width:100%;margin-bottom:22px;border:1px solid var(--line);}
+.st-tabs button{font-family:inherit;font-size:13px;font-weight:900;letter-spacing:1px;color:var(--gray);
+  background:#0b0b0b;border:none;padding:11px 22px;cursor:pointer;}
+.st-tabs button.on{background:var(--red);color:#fff;}
+.st-wrap.all{grid-template-columns:minmax(0,1fr);}
+.st-wrap.all #st-map,.st-wrap.all #st-board{display:none;}
+.st-wrap.all .st-find{margin-bottom:0;}
+.st-all{display:none;margin-top:22px;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;}
+.st-all.show{display:grid;}
+.st-all .st-dais{grid-column:1/-1;text-align:center;border:1px solid var(--gold);background:#2a1f08;
+  padding:10px;font-size:13px;font-weight:900;letter-spacing:2px;color:var(--gold-bright);}
+.st-all .st-dais small{display:block;font-size:10.5px;color:var(--gray);letter-spacing:1px;font-weight:700;}
+.st-all .st-board.mid{grid-column:1/-1;justify-self:center;width:calc(50% - 7px);}
+.st-all .st-board .hd{padding:11px 14px;}
+.st-all .st-board .hd .t{font-size:24px;}
+.st-all .st-board .r{padding:7px 14px;font-size:13.5px;}
+@media(max-width:820px){
+  .st-all{gap:10px;}
+  .st-all .st-board.mid{width:calc(50% - 5px);}
+  .st-all .st-board .rows{grid-template-columns:1fr;}
+  .st-all .st-board .hd{padding:9px 9px;gap:8px;}
+  .st-all .st-board .hd .s{font-size:10.5px;}
+  .st-all .st-board .r{padding:6px 8px;font-size:12px;gap:6px;}
+  .st-all .st-board .r .n{font-size:13px;width:1.1em;}
+}
+
 /* 笑神籤（えみくじ）風の発表 */
 .st-draw{display:none;margin-top:18px;text-align:center;border:1px solid var(--gold);
   background:linear-gradient(180deg,#1b1406,#0b0b0b);padding:20px 14px 18px;}
@@ -1176,8 +1203,12 @@ const CONFIG = {
       <div class="sec-head">
         <span class="sec-en osw">SEATING</span><span class="sec-ja">座席表</span>
       </div>
-      <p class="st-lead">決勝会場（4F）のフロアマップ。テーブルをタップすると、その卓の出場者が見られます。</p>
-      <div class="st-wrap">
+      <p class="st-lead">決勝会場（4F）のフロアマップ。テーブルをタップするとその卓の出場者が、「全員の席次表」で全席のお名前が見られます。</p>
+      <div class="st-tabs" id="st-tabs">
+        <button data-m="map" class="on">会場マップ</button>
+        <button data-m="all">全員の席次表</button>
+      </div>
+      <div class="st-wrap" id="st-wrap">
         <div class="st-map" id="st-map"></div>
         <div>
           <div class="st-find">
@@ -1198,6 +1229,7 @@ const CONFIG = {
           <div class="st-board" id="st-board"></div>
         </div>
       </div>
+      <div class="st-all" id="st-all"></div>
     </div>
   </section>
 
@@ -2300,6 +2332,7 @@ const SEAT_LAYOUTS = {
   },
   plan2: {
     viewBox: "370 95 505 1020",
+    listOrder: ["A","B","C","D","E","F","I","G","H"], listMid: ["I"],   // 席次表での並び（会場の左右に合わせる）
     tables: [
       { id:"A", shape:"rect", x:425, y:208, w:55, h:107, seats:[[1,490,223],[2,490,261],[3,490,298],[4,411,223],[5,411,261],[6,411,298],[7,452,327]] },
       { id:"B", shape:"rect", x:600, y:208, w:55, h:160, tagY:280,
@@ -2403,6 +2436,7 @@ function stSelect(id){
       s.classList.toggle("hit", !!stHit && g.dataset.t===stHit.t && Number(s.dataset.n)===stHit.n);
     });
   });
+  stRenderAll();
   const B = $("#st-board");
   if(!id){
     B.innerHTML = `<div class="hd"><span class="t">TABLE</span><span class="s">テーブルを選択</span></div>
@@ -2418,6 +2452,28 @@ function stSelect(id){
   }).join("");
   B.innerHTML = `<div class="hd"><span class="t">${id}</span><span class="s">テーブル${lb?"｜"+escapeHtml(lb):""}（${t.seats.length}席）</span></div>
     <div class="rows">${rows}</div>`;
+}
+
+/* 全員の席次表（会場の並びに合わせて左右2列、中央のテーブルは真ん中に） */
+function stRenderAll(){
+  const L = stLayout();
+  const order = L.listOrder || L.tables.map(t=>t.id), mid = L.listMid || [];
+  $("#st-all").innerHTML = `<div class="st-dais">王者席（新郎・新婦）<small>▲ スクリーン・高砂側</small></div>` +
+    order.map(id=>{
+      const t = L.tables.find(x=>x.id===id), g = stGuests(id), lb = stLabel(id);
+      const rows = t.seats.map(s=>s[0]).sort((a,b)=>a-b).map(n=>{
+        const nm = g[n-1], hit = stHit && stHit.t===id && stHit.n===n;
+        return `<div class="r${hit?" hit":""}"><span class="n">${n}</span>${nm?escapeHtml(stDisp(nm)):`<span class="e">—</span>`}</div>`;
+      }).join("");
+      return `<div class="st-board${mid.includes(id)?" mid":""}" data-t="${id}">
+        <div class="hd"><span class="t">${id}</span><span class="s">テーブル${lb?"｜"+escapeHtml(lb):""}</span></div>
+        <div class="rows">${rows}</div></div>`;
+    }).join("");
+}
+function stMode(m){
+  $("#st-tabs").querySelectorAll("button").forEach(b=>b.classList.toggle("on", b.dataset.m===m));
+  $("#st-wrap").classList.toggle("all", m==="all");
+  $("#st-all").classList.toggle("show", m==="all");
 }
 
 /* 名前で検索 → 候補が1件なら笑神籤演出へ */
@@ -2482,6 +2538,7 @@ function stDraw(hit){
 render();
 renderSeats();
 $("#st-go").addEventListener("click", stFind);
+$("#st-tabs").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>stMode(b.dataset.m)));
 $("#st-q").addEventListener("keydown", e=>{ if(e.key==="Enter" && !e.isComposing) stFind(); });
 renderCapsule();
 tickCounter();
