@@ -999,23 +999,23 @@ const CONFIG = {
     appId:"1:240489578493:web:a420bb50554a40b1caa394"
   },
 
-  /* 座席表（決勝会場 4F）。layout は "plan1"（現在の案1）。
+  /* 座席表（決勝会場 4F）。layout は "plan2"（確定した配席）／"plan1"（旧案）。
      guests はテーブルごとに「1番席, 2番席, …」の順でお名前を入れる（空欄は空席扱い）。
-     公開URLなので「大森 様」のように名字＋様の表記がおすすめ。
+     表示時に自動で「様」が付きます。
      label はテーブルの肩書き（例:"新郎 大学友人"）。空なら非表示。
-     お名前未入力の間は ?seatdemo=1 を付けるとダミー名で動作確認できます。 */
+     ?seatdemo=1 を付けるとダミー名で動作確認できます。 */
   seating: {
-    layout: "plan1",
+    layout: "plan2",
     tables: {
-      A: { label:"", guests:["","","","","",""] },
-      B: { label:"", guests:["","","","","",""] },
-      C: { label:"", guests:["","","","","","",""] },
-      D: { label:"", guests:["","","","","","",""] },
-      E: { label:"", guests:["","","","","",""] },
-      F: { label:"", guests:["","","","","",""] },
-      G: { label:"", guests:["","","","","","","",""] },   // 5〜8番＝奥側の長テーブル
-      H: { label:"", guests:["","","","","",""] },
-      I: { label:"", guests:["","","","","",""] },
+      A: { label:"", guests:["塚本 翔太","松井 翔太郎","飯島 諒","大久保 岳","田中 航平","守谷 俊介","中島 良太"] },
+      B: { label:"", guests:["古見 麗帆","古見 琉風","古見 琉生","古見 研志郎","庭井 里奈","庭井 芹奈","内田 瑞希","内田 瑛理"] },
+      C: { label:"", guests:["上松 純","鈴木 雄大","徳永 祥太","前野 翔吾","江部 龍太郎","永澤 樹","椎名 遥真"] },
+      D: { label:"", guests:["江崎 大賀","藤澤 亜矢子","和久井 楓","江﨑 美希","江崎 蘭","江﨑 創太"] },
+      E: { label:"", guests:["小玉 裕也","吉田 裕希","小畑 秀","大島 知也","向川 文也"] },
+      F: { label:"", guests:["嘉藤 詩菜","吉村 美穂","森下 きき","黒柳 璃保","松田 布久子","岩崎 なつみ"] },
+      G: { label:"", guests:["岩間 華","柴田 明日香","新津 七海","高橋 渉","柳町 愛貴","平田 彩也香","榎本 千尋"] },
+      H: { label:"", guests:["吉崎 友佳理","小久保 眞生子","加藤 翠","永野 眞貴子","小林 弥栄","鈴木 幸織"] },
+      I: { label:"", guests:["西村 涼","渡邊 あゆみ","弘田 俊貴","田畑 辰朗","田中 哲也","千須和 剛平"] },
     },
   },
 
@@ -2280,7 +2280,7 @@ function pvSkip(){ pvToken++; pvStopAll(); $("#pv").classList.remove("show"); pv
 
 /* ================================================================
    座席表（会場図＋笑神籤風の席さがし）
-   SEAT_LAYOUTS の座標は会場配席図（案1）の画像座標をそのまま使用
+   SEAT_LAYOUTS の座標は会場配席図の画像座標をもとにしている（plan2＝確定案／plan1＝旧案）
 ================================================================ */
 const SEAT_LAYOUTS = {
   plan1: {
@@ -2298,6 +2298,22 @@ const SEAT_LAYOUTS = {
         seats:[[1,481,694],[2,481,742],[3,404,742],[4,404,694],[5,481,788],[6,481,834],[7,404,834],[8,404,788]] },
     ],
   },
+  plan2: {
+    viewBox: "370 95 505 1020",
+    tables: [
+      { id:"A", shape:"rect", x:425, y:208, w:55, h:107, seats:[[1,490,223],[2,490,261],[3,490,298],[4,411,223],[5,411,261],[6,411,298],[7,452,327]] },
+      { id:"B", shape:"rect", x:600, y:208, w:55, h:160, tagY:280,
+        seats:[[1,665,223],[2,665,261],[3,665,298],[4,665,345],[5,588,223],[6,588,261],[7,588,298],[8,588,345]] },
+      { id:"C", shape:"rect", x:425, y:363, w:55, h:107, seats:[[1,490,379],[2,490,415],[3,490,452],[4,411,379],[5,411,415],[6,411,452],[7,452,482]] },
+      { id:"D", shape:"round", cx:634, cy:438, seats:[[1,653,406],[2,671,438],[3,652,471],[4,615,471],[5,597,438],[6,615,406]] },
+      { id:"E", shape:"round", cx:440, cy:553, seats:[[1,459,521],[2,477,553],[3,458,586],[4,421,586],[5,403,553]] },
+      { id:"F", shape:"round", cx:635, cy:571, seats:[[1,654,539],[2,672,571],[3,653,604],[4,616,604],[5,598,571],[6,616,539]] },
+      { id:"I", shape:"round", cx:537, cy:637, seats:[[1,556,605],[2,574,637],[3,555,670],[4,518,670],[5,500,637],[6,518,605]] },
+      { id:"H", shape:"round", cx:642, cy:702, seats:[[1,661,670],[2,679,702],[3,660,735],[4,623,735],[5,605,702],[6,623,670]] },
+      { id:"G", shape:"round", cx:449, cy:742, r:32,
+        seats:[[1,474,698],[2,495,724],[3,496,761],[4,468,787],[5,431,786],[6,406,759],[7,412,718]] },
+    ],
+  },
 };
 const SEAT_DEMO = params.get("seatdemo") === "1";
 const SEAT_DEMO_NAMES = ["大森","安藤","佐藤","鈴木","高橋","田中","伊藤","渡辺","山本","中村","小林","加藤","吉田","山田","佐々木","山口","松本","井上","木村","林","清水","山崎","森","池田","橋本","阿部","石川","山下","中島","石井","小川","前田","岡田","長谷川","藤田","後藤","近藤","村上","遠藤","青木","坂本","斎藤","福田","太田","西村","藤井","金子","岡本","藤原","中野","三浦","原田","松田","竹内","中川","小野","田村","河野"];
@@ -2311,14 +2327,17 @@ function stGuests(id){
   if(SEAT_DEMO){
     const lt = stLayout().tables, ti = lt.findIndex(x=>x.id===id);
     const off = lt.slice(0,ti).reduce((a,x)=>a+x.seats.length,0);
-    return lt[ti].seats.map((s,i)=>(SEAT_DEMO_NAMES[(off+i)%SEAT_DEMO_NAMES.length])+" 様");
+    return lt[ti].seats.map((s,i)=>(SEAT_DEMO_NAMES[(off+i)%SEAT_DEMO_NAMES.length]));
   }
   return g;
 }
 function stLabel(id){ return ((((CONFIG.seating||{}).tables||{})[id])||{}).label || ""; }
-/* 表記ゆれ吸収：全角半角・空白・カタカナ→ひらがな・「様」 */
+function stDisp(nm){ return nm + " 様"; }
+/* 表記ゆれ吸収：全角半角・空白・カタカナ→ひらがな・「様」・旧字/異体字（﨑→崎、邊→辺 など） */
+const ST_ITAIJI = {"﨑":"崎","碕":"崎","髙":"高","邊":"辺","邉":"辺","澤":"沢","眞":"真","嶋":"島","嶌":"島","濱":"浜","廣":"広","德":"徳","齋":"斎","齊":"斎","斉":"斎","櫻":"桜","國":"国","龍":"竜","惠":"恵","瀨":"瀬","栁":"柳"};
 function stNorm(s){
-  return String(s||"").normalize("NFKC").replace(/\s|様|さま|さん/g,"").toLowerCase()
+  return String(s||"").normalize("NFKC").replace(/\s|様|さま/g,"").toLowerCase()
+    .replace(/./g,c=>ST_ITAIJI[c]||c)
     .replace(/[ァ-ヶ]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60));
 }
 
@@ -2332,7 +2351,7 @@ function renderSeats(){
       body += `<rect class="top" x="${t.x}" y="${t.y}" width="${t.w}" height="${t.h}"/>`;
       tx = t.x+t.w/2; ty = t.tagY || (t.y+t.h/2);
     }else{
-      body += `<circle class="top" cx="${t.cx}" cy="${t.cy}" r="27"/>`;
+      body += `<circle class="top" cx="${t.cx}" cy="${t.cy}" r="${t.r||27}"/>`;
       tx = t.cx; ty = t.cy;
     }
     body += `<rect class="tag" x="${tx-20}" y="${ty-26}" width="40" height="52"/>` +
@@ -2395,7 +2414,7 @@ function stSelect(id){
   const rows = t.seats.map(s=>s[0]).sort((a,b)=>a-b).map(n=>{
     const nm = g[n-1];
     const hit = stHit && stHit.t===id && stHit.n===n;
-    return `<div class="r${hit?" hit":""}"><span class="n">${n}</span>${nm?escapeHtml(nm):`<span class="e">—</span>`}</div>`;
+    return `<div class="r${hit?" hit":""}"><span class="n">${n}</span>${nm?escapeHtml(stDisp(nm)):`<span class="e">—</span>`}</div>`;
   }).join("");
   B.innerHTML = `<div class="hd"><span class="t">${id}</span><span class="s">テーブル${lb?"｜"+escapeHtml(lb):""}（${t.seats.length}席）</span></div>
     <div class="rows">${rows}</div>`;
@@ -2420,7 +2439,7 @@ function stFind(){
   }
   if(found.length===1){ stDraw(found[0]); return; }
   M.textContent = `${found.length}名の出場者が該当しました。あなたはどなた？`;
-  C.innerHTML = found.map((f,i)=>`<button data-i="${i}">${escapeHtml(f.name)}</button>`).join("");
+  C.innerHTML = found.map((f,i)=>`<button data-i="${i}">${escapeHtml(stDisp(f.name))}（${f.t}テーブル）</button>`).join("");
   C.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{
     C.innerHTML = ""; M.textContent = ""; stDraw(found[Number(b.dataset.i)]);
   }));
@@ -2449,7 +2468,7 @@ function stDraw(hit){
       S.textContent = hit.t;
       D.classList.add("done");
       playClick();
-      R.innerHTML = `<b><em>${hit.t}</em> テーブル　<em>${hit.n}</em> 番席</b>${escapeHtml(hit.name)}、決勝の舞台へようこそ！`;
+      R.innerHTML = `<b><em>${hit.t}</em> テーブル　<em>${hit.n}</em> 番席</b>${escapeHtml(stDisp(hit.name))}、決勝の舞台へようこそ！`;
       stHit = hit; stSelect(hit.t);
       stDrawing = false;
     }
